@@ -104,9 +104,9 @@ let currentConfig: AudioCompressorPluginConfig = {
 
 const getContentLoudnessDb = (): number | null => {
   try {
-    const player = document.querySelector('#movie_player') as
-      | (Element & { getPlayerResponse?: () => unknown })
-      | null;
+    const player = document.querySelector<
+      Element & { getPlayerResponse?: () => unknown }
+    >('#movie_player');
     const response = player?.getPlayerResponse?.() as
       | {
           playerConfig?: {

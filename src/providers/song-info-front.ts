@@ -13,6 +13,10 @@ import type { SongInfo } from './song-info';
 import type { VideoDataChanged } from '@/types/video-data-changed';
 
 const DATAUPDATED_FALLBACK_TIMEOUT_MS = 1500;
+const PROGRESS_THROTTLE_MS = 250;
+const BACKGROUND_PROGRESS_THROTTLE_MS = 1000;
+const YOU_THERE_HANDLE_COOLDOWN_MS = 10_000;
+const YOU_THERE_RENDERER = 'ytmusic-you-there-renderer';
 
 let songInfo: SongInfo = {} as SongInfo;
 export const getSongInfo = () => songInfo;
@@ -35,11 +39,36 @@ export const setupSeekedListener = singleton(() => {
   });
 });
 
-export const setupTimeChangedListener = singleton(() => {
+export const setupTimeChangedListener = singleton((api?: MusicPlayer) => {
+  let lastSent = 0;
+
+  if (api) {
+    api.addEventListener('onVideoProgress', (seconds) => {
+      const now = Date.now();
+      const throttle = document.hasFocus()
+        ? PROGRESS_THROTTLE_MS
+        : BACKGROUND_PROGRESS_THROTTLE_MS;
+      if (now - lastSent < throttle || !Number.isFinite(seconds)) return;
+
+      lastSent = now;
+      window.ipcRenderer.send('peard:time-changed', seconds);
+      songInfo.elapsedSeconds = seconds;
+    });
+    return;
+  }
+
   const progressObserver = new MutationObserver((mutations) => {
+    const now = Date.now();
+    const throttle = document.hasFocus()
+      ? PROGRESS_THROTTLE_MS
+      : BACKGROUND_PROGRESS_THROTTLE_MS;
+    if (now - lastSent < throttle) return;
+
     for (const mutation of mutations) {
       const target = mutation.target as Node & { value: string };
       const numberValue = Number(target.value);
+      if (!Number.isFinite(numberValue)) continue;
+      lastSent = now;
       window.ipcRenderer.send('peard:time-changed', numberValue);
       songInfo.elapsedSeconds = numberValue;
     }
@@ -195,8 +224,57 @@ export const setupAutoPlayChangedListener = singleton(() => {
 
 export const setupSongInfo = (api: MusicPlayer) => {
   window.ipcRenderer.on('peard:setup-time-changed-listener', () => {
-    setupTimeChangedListener();
+    setupTimeChangedListener(api);
   });
+
+  const handledYouThereDialogs = new WeakSet<Element>();
+  let lastYouThereHandledAt = 0;
+
+  const dismissYouTherePrompt = () => {
+    if (Date.now() - lastYouThereHandledAt < YOU_THERE_HANDLE_COOLDOWN_MS) {
+      return;
+    }
+
+    for (const el of document.querySelectorAll(YOU_THERE_RENDERER)) {
+      const dialog = el.closest<HTMLElement & { close?: () => void }>(
+        'tp-yt-paper-dialog',
+      );
+      if (!dialog || handledYouThereDialogs.has(dialog)) continue;
+
+      handledYouThereDialogs.add(dialog);
+      lastYouThereHandledAt = Date.now();
+
+      const confirm = dialog.querySelector<HTMLElement>(
+        '[dialog-confirm], yt-button-renderer, tp-yt-paper-button, button',
+      );
+      if (confirm) {
+        confirm.click();
+      } else {
+        dialog.close?.();
+      }
+
+      if (api.getPlayerState() === 2) {
+        api.playVideo();
+      }
+    }
+  };
+
+  const youThereObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (
+          node instanceof HTMLElement &&
+          (node.matches(YOU_THERE_RENDERER) ||
+            node.querySelector(YOU_THERE_RENDERER))
+        ) {
+          dismissYouTherePrompt();
+          return;
+        }
+      }
+    }
+  });
+  youThereObserver.observe(document.body, { childList: true, subtree: true });
+  dismissYouTherePrompt();
 
   window.ipcRenderer.on('peard:setup-like-changed-listener', () => {
     setupLikeChangedListener();

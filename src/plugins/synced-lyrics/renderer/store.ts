@@ -158,12 +158,14 @@ export const retrySearch = (provider: ProviderName, info: SongInfo) => {
     };
   });
 
-  const targetProvider = (providers as Record<string, any>)[provider];
+  const targetProvider = (
+    providers as Record<string, LyricProvider | undefined>
+  )[provider];
   if (!targetProvider) return;
 
   targetProvider
     .search(info)
-    .then((res: any) => {
+    .then((res) => {
       setLyricsStore('lyrics', (old) => {
         return {
           ...old,
@@ -171,11 +173,15 @@ export const retrySearch = (provider: ProviderName, info: SongInfo) => {
         };
       });
     })
-    .catch((error: any) => {
+    .catch((error: unknown) => {
       setLyricsStore('lyrics', (old) => {
         return {
           ...old,
-          [provider]: { state: 'error', data: null, error },
+          [provider]: {
+            state: 'error',
+            data: null,
+            error: error instanceof Error ? error.message : String(error),
+          },
         };
       });
     });

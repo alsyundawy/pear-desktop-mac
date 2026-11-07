@@ -38,6 +38,7 @@ import { isTesting } from '@/utils/testing';
 import { setUpTray } from '@/tray';
 import { setupSongInfo } from '@/providers/song-info';
 import { restart, setupAppControls } from '@/providers/app-controls';
+import { clearStaleCodeCaches } from '@/providers/cache-maintenance';
 import {
   APP_PROTOCOL,
   handleProtocol,
@@ -109,16 +110,27 @@ protocol.registerSchemesAsPrivileged([
 
 // Ozone platform hint: Required for Wayland support
 app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
-// SharedArrayBuffer: Required for downloader (@ffmpeg/core-mt)
-// OverlayScrollbar: Required for overlay scrollbars
-// UseOzonePlatform: Required for Wayland support
-// WaylandWindowDecorations: Required for Wayland decorations
-app.commandLine.appendSwitch(
-  'enable-features',
-  'OverlayScrollbar,SharedArrayBuffer,UseOzonePlatform,WaylandWindowDecorations',
-);
-// Disable Fluent Scrollbar (for OverlayScrollbar)
-app.commandLine.appendSwitch('disable-features', 'FluentScrollbar');
+
+const enabledFeatures = [
+  'SharedArrayBuffer',
+  'OverlayScrollbar',
+  'UseOzonePlatform',
+  'WaylandWindowDecorations',
+  'MemoryPurgeOnFreeze',
+  'ReleaseResourceStrongReferencesOnMemoryPressure',
+  'DeferSpeculativeRFHCreation',
+];
+
+const disabledFeatures = ['FluentScrollbar', 'BackForwardCache', 'Prerender2'];
+
+if (is.linux() && (await config.plugins.isEnabled('shortcuts'))) {
+  // Stops chromium from launching its own MPRIS service
+  disabledFeatures.push('MediaSessionService');
+}
+
+app.commandLine.appendSwitch('enable-features', enabledFeatures.join(','));
+app.commandLine.appendSwitch('disable-features', disabledFeatures.join(','));
+
 if (config.get('options.disableHardwareAcceleration')) {
   if (is.dev()) {
     console.log('Disabling hardware acceleration');
@@ -132,11 +144,6 @@ if (is.linux()) {
   app.setName(
     'com.github.th_ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u005f\u006d\u0075\u0073\u0069\u0063',
   );
-
-  // Stops chromium from launching its own MPRIS service
-  if (await config.plugins.isEnabled('shortcuts')) {
-    app.commandLine.appendSwitch('disable-features', 'MediaSessionService');
-  }
 }
 
 if (config.get('options.proxy')) {
@@ -448,6 +455,7 @@ async function createMainWindow() {
     show: false,
     webPreferences: {
       contextIsolation: true,
+      spellcheck: false,
       preload: path.join(__dirname, '..', 'preload', 'preload.cjs'),
       ...(isTesting()
         ? undefined
@@ -539,6 +547,25 @@ async function createMainWindow() {
     if (config.get('options.appVisible')) {
       win.show();
     }
+  });
+
+  // Hidden to tray: Blink's resource caches (decoded images, fonts) are
+  // re-fetchable, so hand them back after a minute hidden instead of holding
+  // them for the whole session.
+  let hiddenCacheTimer: NodeJS.Timeout | undefined;
+  win.on('hide', () => {
+    hiddenCacheTimer = setTimeout(
+      () => win.webContents.send('peard:clear-cache'),
+      60_000,
+    );
+  });
+  win.on('show', () => {
+    if (!hiddenCacheTimer) return;
+    clearTimeout(hiddenCacheTimer);
+    hiddenCacheTimer = undefined;
+  });
+  win.on('closed', () => {
+    if (hiddenCacheTimer) clearTimeout(hiddenCacheTimer);
   });
 
   removeContentSecurityPolicy();
@@ -846,6 +873,11 @@ function setupAutoUpdates() {
 app
   .whenReady()
   .then(async () => {
+    session.defaultSession.setSpellCheckerEnabled(false);
+    clearStaleCodeCaches().catch((error) =>
+      console.error(LoggerPrefix, 'Failed to clear stale code caches:', error),
+    );
+
     setupAboutPanel();
 
     if (!config.get('options.language')) {

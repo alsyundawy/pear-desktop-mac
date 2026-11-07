@@ -575,6 +575,16 @@ export const mainMenuTemplate = async (
             },
             {
               label: t(
+                'main.menu.options.submenu.advanced-options.submenu.performance-mode',
+              ),
+              type: 'checkbox',
+              checked: config.get('options.performanceMode'),
+              click(item: MenuItem) {
+                config.setMenuOption('options.performanceMode', item.checked);
+              },
+            },
+            {
+              label: t(
                 'main.menu.options.submenu.advanced-options.submenu.restart-on-config-changes',
               ),
               type: 'checkbox',

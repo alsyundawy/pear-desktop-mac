@@ -84,6 +84,13 @@ contextBridge.exposeInMainWorld(
   process.env.ELECTRON_RENDERER_URL,
 );
 
+// The renderer has no Electron APIs of its own; these are the webFrame calls the
+// memory report reads and main asks for when the window has been hidden a while.
+contextBridge.exposeInMainWorld('peardPerf', {
+  getResourceUsage: () => webFrame.getResourceUsage(),
+});
+ipcRenderer.on('peard:clear-cache', () => webFrame.clearCache());
+
 const [path, script] = ipcRenderer.sendSync('get-renderer-script') as [
   string | null,
   string,

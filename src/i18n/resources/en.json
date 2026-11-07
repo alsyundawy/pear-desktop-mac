@@ -98,6 +98,7 @@
             "submenu": {
               "auto-reset-app-cache": "Reset app cache when app starts",
               "disable-hardware-acceleration": "Disable hardware acceleration",
+              "performance-mode": "Performance mode",
               "edit-config-json": "Edit config.json",
               "override-user-agent": "Override User-Agent",
               "restart-on-config-changes": "Restart on config changes",

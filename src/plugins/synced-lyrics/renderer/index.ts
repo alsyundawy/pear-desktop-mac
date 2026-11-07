@@ -61,15 +61,17 @@ export const renderer = createRenderer<
 
     api.addEventListener('videodatachange', this.videoDataChange);
 
+    api.addEventListener('onVideoProgress', (seconds) => {
+      setCurrentTime(seconds * 1000);
+    });
+    api.addEventListener('onStateChange', () => {
+      setCurrentTime((playerApi?.getCurrentTime() ?? 0) * 1000);
+    });
+
     await this.videoDataChange();
   },
   async videoDataChange() {
-    if (!this.updateTimestampInterval) {
-      this.updateTimestampInterval = setInterval(
-        () => setCurrentTime((playerApi?.getCurrentTime() ?? 0) * 1000),
-        100,
-      );
-    }
+    setCurrentTime((playerApi?.getCurrentTime() ?? 0) * 1000);
 
     // prettier-ignore
     this.observer ??= new MutationObserver(this.observerCallback);
@@ -85,6 +87,11 @@ export const renderer = createRenderer<
   },
 
   async start(ctx: RendererContext<SyncedLyricsPluginConfig>) {
+    document.documentElement.toggleAttribute(
+      'data-lyrics-performance',
+      Boolean(window.mainConfig.get('options.performanceMode')),
+    );
+
     internalNetFetch = ctx.ipc.invoke.bind(ctx.ipc, 'synced-lyrics:fetch');
 
     setConfig(await ctx.getConfig());
@@ -95,6 +102,7 @@ export const renderer = createRenderer<
   },
 
   stop() {
+    document.documentElement.removeAttribute('data-lyrics-performance');
     disposeReactiveRoot();
   },
 });
