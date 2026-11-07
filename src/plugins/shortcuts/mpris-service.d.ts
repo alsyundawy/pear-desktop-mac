@@ -61,7 +61,7 @@ declare module '@jellybrick/mpris-service' {
     position: number;
   }
 
-  declare class Player extends EventEmitter {
+  abstract class Player extends EventEmitter {
     constructor(opts: {
       name: string;
       identity: string;

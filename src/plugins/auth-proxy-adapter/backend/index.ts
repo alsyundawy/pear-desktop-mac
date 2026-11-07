@@ -155,7 +155,7 @@ export const backend = createBackend<BackendType, AuthProxyConfig>({
     } else if (atyp === 0x04) {
       // IPv6
       const ipv6Buffer = data.subarray(4, 20);
-      targetHost = Array.from(new Array(8), (_, i) =>
+      targetHost = Array.from({ length: 8 }, (_, i) =>
         ipv6Buffer.readUInt16BE(i * 2).toString(16),
       ).join(':');
       targetPort = data.readUInt16BE(20);

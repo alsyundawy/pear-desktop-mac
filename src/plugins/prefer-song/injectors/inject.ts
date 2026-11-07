@@ -193,7 +193,10 @@ export function installPreferSong() {
     if (!studioId) return null;
 
     body.videoId = studioId;
-    return new Request(request, { body: await gzip(JSON.stringify(body)) });
+    return new Request(request, {
+      method: request.method || 'POST',
+      body: await gzip(JSON.stringify(body)),
+    });
   };
 
   const songQueueResponse = async (response: Response, sent: Request) => {

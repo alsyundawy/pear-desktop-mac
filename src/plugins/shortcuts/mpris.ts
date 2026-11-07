@@ -171,7 +171,7 @@ export function registerMPRIS(win: BrowserWindow) {
       player.shuffle = shuffleEnabled ?? !player.shuffle;
     });
 
-    ipcMain.on('peard:fullscreen-changed', (_, changedTo: boolean) => {
+    ipcMain.on('peard:fullscreen-changed', (_event, changedTo: boolean) => {
       if (player.fullscreen === undefined || !player.canUsePlayerControls) {
         return;
       }
@@ -181,7 +181,7 @@ export function registerMPRIS(win: BrowserWindow) {
 
     ipcMain.on(
       'peard:set-fullscreen',
-      (_, isFullscreen: boolean | undefined) => {
+      (_event, isFullscreen: boolean | undefined) => {
         if (!player.canUsePlayerControls || isFullscreen === undefined) {
           return;
         }
@@ -192,15 +192,15 @@ export function registerMPRIS(win: BrowserWindow) {
 
     ipcMain.on(
       'peard:fullscreen-changed-supported',
-      (_, isFullscreenSupported: boolean) => {
+      (_event, isFullscreenSupported: boolean) => {
         player.canUsePlayerControls = isFullscreenSupported;
       },
     );
-    ipcMain.on('peard:autoplay-changed', (_) => {
+    ipcMain.on('peard:autoplay-changed', () => {
       requestQueueInformation();
     });
 
-    ipcMain.on('peard:get-queue-response', (_, queue: QueueResponse) => {
+    ipcMain.on('peard:get-queue-response', (_event, queue: QueueResponse) => {
       if (!queue) {
         return;
       }

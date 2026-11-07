@@ -5,6 +5,7 @@
   },
   "exclude": ["./dist"],
   "include": [
-    "./tests/**/*"
+    "./tests/**/*",
+    "./src/**/*.d.ts"
   ]
 }

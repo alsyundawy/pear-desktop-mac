@@ -78,7 +78,13 @@ ytmusic-nav-bar > div.left-content > a::before {
 ytmusic-nav-bar > div.left-content > a::after {
   content: 'Music';
   color: #ffffff;
-  font-family: 'YouTube Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'YouTube Sans',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -121,5 +127,5 @@ tp-yt-paper-item.ytmusic-guide-entry-renderer::before {
 
 tp-yt-iron-dropdown,
 tp-yt-paper-dialog {
-  app-region: no-drag;
+  -webkit-app-region: no-drag;
 }

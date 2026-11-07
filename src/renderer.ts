@@ -80,18 +80,18 @@ async function onApiLoaded() {
       .querySelector<HTMLElement>('.next-button.ytmusic-player-bar')
       ?.click();
   });
-  window.ipcRenderer.on('peard:play', (_) => {
+  window.ipcRenderer.on('peard:play', () => {
     api?.playVideo();
   });
-  window.ipcRenderer.on('peard:pause', (_) => {
+  window.ipcRenderer.on('peard:pause', () => {
     api?.pauseVideo();
   });
-  window.ipcRenderer.on('peard:toggle-play', (_) => {
+  window.ipcRenderer.on('peard:toggle-play', () => {
     if (api?.getPlayerState() === 2) api?.playVideo();
     else api?.pauseVideo();
   });
-  window.ipcRenderer.on('peard:seek-to', (_, t: number) => api!.seekTo(t));
-  window.ipcRenderer.on('peard:seek-by', (_, t: number) => api!.seekBy(t));
+  window.ipcRenderer.on('peard:seek-to', (_event, t: number) => api!.seekTo(t));
+  window.ipcRenderer.on('peard:seek-by', (_event, t: number) => api!.seekBy(t));
   window.ipcRenderer.on('peard:shuffle', () => {
     document
       .querySelector<
@@ -115,7 +115,7 @@ async function onApiLoaded() {
 
   window.ipcRenderer.on(
     'peard:update-like',
-    (_, status: 'LIKE' | 'DISLIKE' = 'LIKE') => {
+    (_event, status: 'LIKE' | 'DISLIKE' = 'LIKE') => {
       document
         .querySelector<
           HTMLElement & { updateLikeStatus: (status: string) => void }
@@ -123,7 +123,7 @@ async function onApiLoaded() {
         ?.updateLikeStatus(status);
     },
   );
-  window.ipcRenderer.on('peard:switch-repeat', (_, repeat = 1) => {
+  window.ipcRenderer.on('peard:switch-repeat', (_event, repeat = 1) => {
     for (let i = 0; i < repeat; i++) {
       document
         .querySelector<
@@ -132,7 +132,7 @@ async function onApiLoaded() {
         ?.onRepeatButtonClick();
     }
   });
-  window.ipcRenderer.on('peard:update-volume', (_, volume: number) => {
+  window.ipcRenderer.on('peard:update-volume', (_event, volume: number) => {
     document
       .querySelector<
         HTMLElement & { updateVolume: (volume: number) => void }
@@ -168,12 +168,12 @@ async function onApiLoaded() {
 
   window.ipcRenderer.on(
     'peard:click-fullscreen-button',
-    (_, fullscreen: boolean | undefined) => {
+    (_event, fullscreen: boolean | undefined) => {
       clickFullscreenButton(fullscreen ?? false);
     },
   );
 
-  window.ipcRenderer.on('peard:toggle-mute', (_) => {
+  window.ipcRenderer.on('peard:toggle-mute', () => {
     document
       .querySelector<
         HTMLElement & { onVolumeClick: () => void }
@@ -192,7 +192,7 @@ async function onApiLoaded() {
 
   window.ipcRenderer.on(
     'peard:add-to-queue',
-    (_, videoId: string, queueInsertPosition: string) => {
+    (_event, videoId: string, queueInsertPosition: string) => {
       const queue = document.querySelector<QueueElement>('#queue');
       const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
       if (!app) return;
@@ -247,7 +247,7 @@ async function onApiLoaded() {
   );
   window.ipcRenderer.on(
     'peard:move-in-queue',
-    (_, fromIndex: number, toIndex: number) => {
+    (_event, fromIndex: number, toIndex: number) => {
       const queue = document.querySelector<QueueElement>('#queue');
       queue?.dispatch({
         type: 'MOVE_ITEM',
@@ -258,14 +258,14 @@ async function onApiLoaded() {
       });
     },
   );
-  window.ipcRenderer.on('peard:remove-from-queue', (_, index: number) => {
+  window.ipcRenderer.on('peard:remove-from-queue', (_event, index: number) => {
     const queue = document.querySelector<QueueElement>('#queue');
     queue?.dispatch({
       type: 'REMOVE_ITEM',
       payload: index,
     });
   });
-  window.ipcRenderer.on('peard:set-queue-index', (_, index: number) => {
+  window.ipcRenderer.on('peard:set-queue-index', (_event, index: number) => {
     const queue = document.querySelector<QueueElement>('#queue');
     queue?.dispatch({
       type: 'SET_INDEX',
@@ -285,7 +285,7 @@ async function onApiLoaded() {
 
   window.ipcRenderer.on(
     'peard:search',
-    async (_, query: string, params?: string, continuation?: string) => {
+    async (_event, query: string, params?: string, continuation?: string) => {
       const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
       const searchBox =
         document.querySelector<SearchBoxElement>('ytmusic-search-box');

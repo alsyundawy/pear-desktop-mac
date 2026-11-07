@@ -800,7 +800,6 @@ const feedbackQueue: {
   reason: string;
   name: string;
 }[] = [];
-let _feedbackSent = 0;
 let feedbackTimer: ReturnType<typeof setInterval> | null = null;
 let loggedFeedbackMenu = false;
 
@@ -978,7 +977,6 @@ const feedbackTick = async () => {
             feedbackTokens: [next.token],
           },
         );
-        _feedbackSent++;
         feedbackDone.add(next.key);
         saveFeedbackDone();
         // the key falls back to a videoId/token when a card has no channel; only

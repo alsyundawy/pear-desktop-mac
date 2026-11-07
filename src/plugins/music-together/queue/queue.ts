@@ -338,12 +338,10 @@ export class Queue {
             const index = this._videoList.length;
 
             if (videoList.length > 0) {
-              this._videoList = [
-                ...videoList.map((it) => ({
-                  ...it,
-                  ownerId: it.ownerId ?? this.owner?.id,
-                })),
-              ];
+              this._videoList = videoList.map((it) => ({
+                ...it,
+                ownerId: it.ownerId ?? this.owner?.id,
+              }));
               this.broadcast({
                 // play
                 type: 'ADD_SONGS',
