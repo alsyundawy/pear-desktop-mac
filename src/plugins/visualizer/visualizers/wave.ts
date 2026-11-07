@@ -33,7 +33,9 @@ class WaveVisualizer extends Visualizer {
     }
   }
 
-  resize(_width: number, _height: number) {}
+  resize(_width: number, _height: number) {
+    // no-op: wave handles auto-resizing internally
+  }
 
   destroy() {
     this.visualizer.clearAnimations();

@@ -87,7 +87,7 @@ export const setUpTray = (app: Electron.App, win: Electron.BrowserWindow) => {
       app.dock?.hide();
     } else {
       win.show();
-      app.dock?.show();
+      void app.dock?.show();
     }
   });
 
@@ -114,13 +114,15 @@ export const setUpTray = (app: Electron.App, win: Electron.BrowserWindow) => {
       label: t('main.tray.show'),
       click() {
         win.show();
-        app.dock?.show();
+        void app.dock?.show();
       },
     },
     { type: 'separator' },
     {
       label: t('main.tray.restart'),
-      click: restart,
+      click() {
+        void restart();
+      },
     },
     { type: 'separator' },
     {
@@ -136,7 +138,7 @@ export const setUpTray = (app: Electron.App, win: Electron.BrowserWindow) => {
     if (event === SongInfoEvent.TimeChanged) return;
 
     if (tray) {
-      if (typeof songInfo.isPaused === 'undefined') {
+      if (songInfo.isPaused === undefined) {
         tray.setImage(defaultTrayIcon);
         return;
       }

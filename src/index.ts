@@ -874,9 +874,11 @@ app
   .whenReady()
   .then(async () => {
     session.defaultSession.setSpellCheckerEnabled(false);
-    clearStaleCodeCaches().catch((error) =>
-      console.error(LoggerPrefix, 'Failed to clear stale code caches:', error),
-    );
+    try {
+      await clearStaleCodeCaches();
+    } catch (error) {
+      console.error(LoggerPrefix, 'Failed to clear stale code caches:', error);
+    }
 
     setupAboutPanel();
 

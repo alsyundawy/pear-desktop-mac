@@ -19,7 +19,7 @@ const parseSocksUrl = (socksUrl: string) => {
   if (!url) return null;
   return {
     host: url.hostname,
-    port: parseInt(url.port, 10),
+    port: Number.parseInt(url.port, 10),
     type: url.protocol === 'socks5:' ? 5 : 4,
     username: url.username,
     password: url.password,

@@ -33,7 +33,8 @@ export const pickLrchubLrc = (record: LrchubRecord): string =>
 
 const splitArtists = (artists: string) =>
   artists
-    .split(/[&,]|\s+(?:feat\.?|ft\.?)\s+/i)
+    .replace(/\s+(?:feat|ft)\.?\s+/gi, ',')
+    .split(/[,&]/)
     .map((artist) => artist.trim())
     .filter(Boolean);
 
@@ -79,6 +80,7 @@ const requestLyrics = async (body: object): Promise<[number, string]> => {
     }
 
     if (!isRetryableStatus(response[0]) || attempt === ATTEMPTS) break;
+    // NOSONAR(typescript:S9382) - Exponential backoff retry loop requires sequential delay
     await new Promise((resolve) => setTimeout(resolve, 750 * attempt));
   }
 

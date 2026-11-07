@@ -151,10 +151,8 @@ export function installPreferSong() {
     // the whole row, then take the song row's metadata.
     const swapped = JSON.parse(
       JSON.stringify(item)
-        .split(rowId)
-        .join(studioId)
-        .split('MUSIC_VIDEO_TYPE_OMV')
-        .join('MUSIC_VIDEO_TYPE_ATV'),
+        .replaceAll(rowId, studioId)
+        .replaceAll('MUSIC_VIDEO_TYPE_OMV', 'MUSIC_VIDEO_TYPE_ATV'),
     ) as QueueItem;
     Object.assign(item, swapped);
 

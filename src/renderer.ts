@@ -60,7 +60,7 @@ async function onApiLoaded() {
     } else if (window.electronIs.linux()) {
       osType = 'Linux';
     }
-    document.documentElement.setAttribute('data-os', osType);
+    document.documentElement.dataset.os = osType;
   }
 
   // Workaround for #2459
@@ -200,7 +200,7 @@ async function onApiLoaded() {
       const store = queue?.queue.store.store;
       if (!store) return;
 
-      app.networkManager
+      void app.networkManager
         .fetch('/music/get_queue', {
           queueContextParams: store.getState().queue.queueContextParams,
           queueInsertPosition,
@@ -316,15 +316,13 @@ async function onApiLoaded() {
   const audioSource = audioContext.createMediaElementSource(video);
   audioSource.connect(audioContext.destination);
 
-  for (const [id, plugin] of Object.entries(getAllLoadedRendererPlugins())) {
-    if (typeof plugin.renderer !== 'function') {
-      await plugin.renderer?.onPlayerApiReady?.call(
-        plugin.renderer,
-        api!,
-        createContext(id),
-      );
-    }
-  }
+  await Promise.all(
+    Object.entries(getAllLoadedRendererPlugins()).map(async ([id, plugin]) => {
+      if (typeof plugin.renderer !== 'function') {
+        await plugin.renderer?.onPlayerApiReady?.(api!, createContext(id));
+      }
+    }),
+  );
 
   if (firstDataLoaded) {
     document.dispatchEvent(
@@ -420,28 +418,20 @@ async function onApiLoaded() {
   }
 }
 
-/**
- * Original still using ES5, so we need to define custom elements using ES5 style
- */
-const definePearTransElements = () => {
-  const PearTrans = function () {};
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  PearTrans.prototype = Object.create(HTMLElement.prototype);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  PearTrans.prototype.connectedCallback = function () {
-    const that = this as HTMLElement;
-    const key = that.getAttribute('key');
+class PearTrans extends HTMLElement {
+  connectedCallback() {
+    const key = this.getAttribute('key');
     if (key) {
       const targetHtml = i18t(key);
-      (that.innerHTML as string | TrustedHTML) = defaultTrustedTypePolicy
+      (this.innerHTML as string | TrustedHTML) = defaultTrustedTypePolicy
         ? defaultTrustedTypePolicy.createHTML(targetHtml)
         : targetHtml;
     }
-  };
-  customElements.define(
-    'pear-trans',
-    PearTrans as unknown as CustomElementConstructor,
-  );
+  }
+}
+
+const definePearTransElements = () => {
+  customElements.define('pear-trans', PearTrans);
 };
 
 const preload = async () => {
@@ -468,8 +458,7 @@ const main = async () => {
     if (api) {
       const plugin = getLoadedRendererPlugin(id);
       if (plugin && typeof plugin.renderer !== 'function') {
-        await plugin.renderer?.onPlayerApiReady?.call(
-          plugin.renderer,
+        await plugin.renderer?.onPlayerApiReady?.(
           api,
           createContext(id),
         );
@@ -482,7 +471,7 @@ const main = async () => {
     (_event, id: string, newConfig: PluginConfig) => {
       const plugin = getAllLoadedRendererPlugins()[id];
       if (plugin && typeof plugin.renderer !== 'function') {
-        plugin.renderer?.onConfigChange?.call(plugin.renderer, newConfig);
+        plugin.renderer?.onConfigChange?.(newConfig);
       }
     },
   );
@@ -534,7 +523,7 @@ const initObserver = async () => {
         api = playerApi;
         isApiLoaded = true;
 
-        onApiLoaded();
+        void onApiLoaded();
       }
     }
   });
@@ -545,4 +534,4 @@ const initObserver = async () => {
   });
 };
 
-initObserver().then(preload).then(main);
+void initObserver().then(preload).then(main);

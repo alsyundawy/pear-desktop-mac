@@ -11,7 +11,7 @@ import type { QueueElement, Store } from '@/types/queue';
 
 const getHeaderPayload = (() => {
   let payload: {
-    items?: QueueItem[] | undefined;
+    items?: QueueItem[];
     title: {
       runs: {
         text: string;
@@ -50,8 +50,7 @@ const getHeaderPayload = (() => {
   } | null = null;
 
   return () => {
-    if (!payload) {
-      payload = {
+    payload ??= {
         title: {
           runs: [
             {
@@ -96,7 +95,6 @@ const getHeaderPayload = (() => {
           },
         ],
       };
-    }
 
     return payload;
   };
@@ -115,7 +113,7 @@ export class Queue {
 
   private originalDispatch?: (obj: {
     type: string;
-    payload?: { items?: QueueItem[] | undefined };
+    payload?: { items?: QueueItem[] };
   }) => void;
 
   private internalDispatch = false;
@@ -479,7 +477,7 @@ export class Queue {
         fakeContext,
         event as {
           type: string;
-          payload?: { items?: QueueItem[] | undefined } | undefined;
+          payload?: { items?: QueueItem[] };
         },
       );
     };

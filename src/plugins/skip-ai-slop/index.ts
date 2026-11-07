@@ -112,7 +112,7 @@ const addBlocked = (id: string, name: string) => {
   ];
   config = { ...config, userBlock: next };
   rebuildKeywords();
-  savePluginConfig?.({ userBlock: next });
+  void savePluginConfig?.({ userBlock: next });
 };
 const learnArtist = (id: string) => {
   if (allowIds.has(id) || blockIds.has(id) || sessionBlockIds.has(id)) return;
@@ -134,7 +134,7 @@ let recentSkips: number[] = [];
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 const has = (o: Record<string, BlacklistEntry>, k: string) =>
-  Object.prototype.hasOwnProperty.call(o, k);
+  Object.hasOwn(o, k);
 
 /**
  * Matching needs only the IDs: dropping names and reasons makes the cache ~85%
@@ -970,6 +970,7 @@ const feedbackTick = async () => {
       const nm = document.querySelector<AppEl>('ytmusic-app')?.networkManager;
       if (!nm?.fetch) return;
       try {
+        // NOSONAR(typescript:S9382) - Sequential queue processing to respect API rate limits
         await (originalFetch ?? nm.fetch).call(
           nm,
           '/feedback?prettyPrint=false',
@@ -1039,7 +1040,7 @@ const scanSearchResults = () => {
         });
       }
       const cached = verdicts.get(data);
-      if (cached && cached.ver === filterVersion) {
+      if (cached?.ver === filterVersion) {
         flagged = cached.flagged;
       } else {
         const candidates = info.videoIds.length ? info.videoIds : [undefined];
@@ -1335,7 +1336,7 @@ export default createPlugin({
       startPageScan(); // keywords, block/allow lists and the cached list work at once
       // also download once when the names for the settings search are missing
       if (!cacheFresh || !hasBlacklistNames()) {
-        downloadList().then((ok) => {
+        void downloadList().then((ok) => {
           if (ok) onListChanged();
         });
       }

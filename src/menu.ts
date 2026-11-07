@@ -140,7 +140,7 @@ export const mainMenuTemplate = async (
 
   const availablePlugins = Object.keys(await allPlugins());
   const pluginMenus = await Promise.all(
-    availablePlugins
+    [...availablePlugins]
       .sort((a, b) => {
         const aPluginLabel = allPluginsStubs[a]?.name?.() ?? a;
         const bPluginLabel = allPluginsStubs[b]?.name?.() ?? b;
@@ -364,7 +364,7 @@ export const mainMenuTemplate = async (
                           .get('options.themes')
                           ?.filter((t) => t !== theme) ?? [],
                       );
-                      innerRefreshMenu();
+                      await innerRefreshMenu();
                     }
                   },
                 })) ?? []),
@@ -381,7 +381,7 @@ export const mainMenuTemplate = async (
                     });
                     if (filePaths) {
                       config.set('options.themes', filePaths);
-                      innerRefreshMenu();
+                      await innerRefreshMenu();
                     }
                   },
                 },
@@ -419,7 +419,7 @@ export const mainMenuTemplate = async (
                 click(item) {
                   config.setMenuOption('options.hideMenu', item.checked);
                   if (item.checked && !config.get('options.hideMenuWarned')) {
-                    dialog.showMessageBox(win, {
+                    void dialog.showMessageBox(win, {
                       type: 'info',
                       title: t(
                         'main.menu.options.submenu.hide-menu.dialog.title',
@@ -509,7 +509,7 @@ export const mainMenuTemplate = async (
               type: 'normal',
               click() {
                 const url = 'https://bit.ly/48n5YF7';
-                shell.openExternal(url);
+                void shell.openExternal(url);
               },
             } as Electron.MenuItemConstructorOptions,
           ].concat(
@@ -521,9 +521,9 @@ export const mainMenuTemplate = async (
                   checked: (config.get('options.language') ?? 'en') === lang,
                   click() {
                     config.setMenuOption('options.language', lang);
-                    refreshMenu(win);
-                    setLanguage(lang);
-                    dialog.showMessageBox(win, {
+                    void refreshMenu(win);
+                    void setLanguage(lang);
+                    void dialog.showMessageBox(win, {
                       title: t(
                         'main.menu.options.submenu.language.dialog.title',
                       ),
@@ -633,7 +633,7 @@ export const mainMenuTemplate = async (
                 'main.menu.options.submenu.advanced-options.submenu.edit-config-json',
               ),
               click() {
-                config.edit();
+                void config.edit();
               },
             },
           ],
