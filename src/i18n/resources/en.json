@@ -740,6 +740,10 @@
         "button": "Speed"
       }
     },
+    "prefer-song": {
+      "name": "Prefer Song",
+      "description": "Play the song instead of the music video when an album track is a video"
+    },
     "precise-volume": {
       "description": "Control the volume precisely using mousewheel/hotkeys, with a custom HUD and customizable volume steps",
       "menu": {
@@ -837,6 +841,82 @@
           "label": "Choose Global Keybinds for Songs Control:",
           "title": "Global Keybinds"
         }
+      }
+    },
+    "sfw-music": {
+      "name": "SFW Music",
+      "description": "Automatically skips songs marked Explicit by YouTube Music. Pauses if an explicit queue repeats or no next song is available."
+    },
+    "skip-ai-slop": {
+      "name": "Skip AI Slop",
+      "description": "Skips AI-generated tracks and hides them from pages, using keywords, channel lists and a community blacklist",
+      "actions": {
+        "allow": "Allow",
+        "allowed": "Allowed",
+        "block": "Block",
+        "clear-cache": "Clear cache",
+        "delete": "Delete",
+        "download-list": "Download list now",
+        "remove": "Remove"
+      },
+      "keywords": {
+        "placeholder": "Add a keyword... (press Enter)"
+      },
+      "list": {
+        "allowed": "No allowed channels",
+        "blocked": "No blocked channels",
+        "recent": "No filtered channels yet"
+      },
+      "search": {
+        "allow-aria": "Allow {{name}}",
+        "kind-channel": "Channel",
+        "kind-track": "Track",
+        "no-matches": "No matches.",
+        "no-names": "The community list hasn't been saved yet. It downloads when the app starts, so try again in a minute.",
+        "placeholder": "Type a name or paste a channel ID…",
+        "showing": "Showing {{shown}} of {{total}}. Type more to narrow it down."
+      },
+      "settings": {
+        "allowed": {
+          "description": "Never filtered, no matter what",
+          "label": "Allowed channels"
+        },
+        "blocked": {
+          "description": "Channels you marked \"Don't recommend\", plus ones the plugin reported to YouTube",
+          "label": "Blocked channels"
+        },
+        "hide-in-pages": {
+          "description": "Hides AI slop tracks in search, home, explore, library and playlists",
+          "label": "Hide in pages"
+        },
+        "keywords": {
+          "description": "Skips tracks whose title or channel name contains one of these words (whole words only)",
+          "label": "Blocked keywords"
+        },
+        "list-tools": {
+          "description": "Download the list from GitHub again, or clear its saved copy",
+          "label": "Community list"
+        },
+        "recent": {
+          "description": "Channels caught by a keyword or the community list. Press Allow if one is a false match",
+          "label": "Recently filtered"
+        },
+        "report-feedback": {
+          "description": "Sends permanent feedback to your YouTube account (slow and limited). Off by default",
+          "label": "Send \"Not interested\" to YouTube for home recommendations"
+        },
+        "search-blocked": {
+          "description": "Find a channel or track on the community list by name or ID, and allow it",
+          "label": "Search the community list"
+        }
+      },
+      "status": {
+        "cache-cleared": "Cache cleared. The community list is off until you press \"Download list now\" (or restart the app).",
+        "download-failed": "Download failed, the old list was kept (details in the console).",
+        "downloaded": "Downloaded. {{summary}}",
+        "downloading": "Downloading…",
+        "none": "No list loaded right now.",
+        "summary": "Loaded: {{channels}} channels, {{tracks}} tracks (list dated {{date}})."
       }
     },
     "skip-disliked-songs": {
