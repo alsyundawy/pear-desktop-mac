@@ -40,26 +40,26 @@ img {
 }
 
 /* Hide cast button which doesn't work */
-ytmusic-cast-button {
-  display: none !important;
+:is(html, body) ytmusic-cast-button {
+  display: none;
 }
 
 /* Remove useless inaccessible button on top-right corner of the video player */
-.ytp-chrome-top-buttons {
-  display: none !important;
+:is(html, body) .ytp-chrome-top-buttons {
+  display: none;
 }
 
 /* Replace YouTube Music logo with Pear Desktop application logo */
-ytmusic-nav-bar > div.left-content > a > picture {
-  display: none !important;
+:is(html, body) ytmusic-nav-bar > div.left-content > a > picture {
+  display: none;
 }
 
-ytmusic-nav-bar > div.left-content > a {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  height: 100% !important;
-  text-decoration: none !important;
+:is(html, body) ytmusic-nav-bar > div.left-content > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+  text-decoration: none;
   -webkit-user-drag: none;
 }
 
@@ -98,8 +98,8 @@ ytmusic-nav-bar > div.left-content > a::after {
 }
 
 /* yt-music bugs */
-tp-yt-paper-item.ytmusic-guide-entry-renderer::before {
-  border-radius: 8px !important;
+:is(html, body) tp-yt-paper-item.ytmusic-guide-entry-renderer::before {
+  border-radius: 8px;
 }
 
 /* fix video player align */
@@ -107,9 +107,11 @@ tp-yt-paper-item.ytmusic-guide-entry-renderer::before {
   padding-bottom: 0;
 }
 
-#av-id ~ #player.ytmusic-player-page:not([player-ui-state='FULLSCREEN']) {
-  margin-top: auto !important;
-  margin-bottom: auto !important;
+:is(html, body)
+  #av-id
+  ~ #player.ytmusic-player-page:not([player-ui-state='FULLSCREEN']) {
+  margin-top: auto;
+  margin-bottom: auto;
   margin-left: var(--ytmusic-player-page-vertical-padding);
   margin-right: var(--ytmusic-player-page-vertical-padding);
   max-height: calc(100% - (var(--ytmusic-player-page-vertical-padding) * 2));

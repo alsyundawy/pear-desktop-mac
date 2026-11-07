@@ -960,36 +960,39 @@ const enqueueFeedback = (el: HTMLElement, info: SearchInfo, reason: string) => {
   feedbackQueue.push({ key, token, reason, name: info.author || info.title });
 };
 
+const drainFeedbackQueue = async (): Promise<void> => {
+  if (!active || !config.reportFeedback || !feedbackQueue.length) return;
+  const next = feedbackQueue.shift()!;
+  const nm = document.querySelector<AppEl>('ytmusic-app')?.networkManager;
+  if (!nm?.fetch) return;
+  try {
+    await (originalFetch ?? nm.fetch).call(
+      nm,
+      '/feedback?prettyPrint=false',
+      {
+        feedbackTokens: [next.token],
+      },
+    );
+    feedbackDone.add(next.key);
+    saveFeedbackDone();
+    // the key falls back to a videoId/token when a card has no channel; only
+    // real channel IDs belong in the channel block list
+    if (next.key.startsWith('UC')) addBlocked(next.key, next.name);
+    console.info(
+      `[skip-ai-slop] sent "not interested" for ${next.key} (${next.reason})`,
+    );
+  } catch (err) {
+    console.warn('[skip-ai-slop] feedback request failed', err);
+  }
+  return drainFeedbackQueue();
+};
+
 let feedbackBusy = false;
 const feedbackTick = async () => {
   if (feedbackBusy) return;
   feedbackBusy = true;
   try {
-    while (active && config.reportFeedback && feedbackQueue.length) {
-      const next = feedbackQueue.shift()!;
-      const nm = document.querySelector<AppEl>('ytmusic-app')?.networkManager;
-      if (!nm?.fetch) return;
-      try {
-        // NOSONAR(typescript:S9382) - Sequential queue processing to respect API rate limits
-        await (originalFetch ?? nm.fetch).call(
-          nm,
-          '/feedback?prettyPrint=false',
-          {
-            feedbackTokens: [next.token],
-          },
-        );
-        feedbackDone.add(next.key);
-        saveFeedbackDone();
-        // the key falls back to a videoId/token when a card has no channel; only
-        // real channel IDs belong in the channel block list
-        if (next.key.startsWith('UC')) addBlocked(next.key, next.name);
-        console.info(
-          `[skip-ai-slop] sent "not interested" for ${next.key} (${next.reason})`,
-        );
-      } catch (err) {
-        console.warn('[skip-ai-slop] feedback request failed', err);
-      }
-    }
+    await drainFeedbackQueue();
   } finally {
     feedbackBusy = false;
   }
@@ -1011,6 +1014,59 @@ const unhideSearchResults = () => {
 const verdicts = new WeakMap<object, { ver: number; flagged: boolean }>();
 let lastPageScan = 0;
 
+const evaluateCardData = (el: HTMLElement, data: Renderer): boolean => {
+  const info = searchInfo(data);
+  if (info.token && info.channelIds[0] && !tokenChannel.has(info.token)) {
+    tokenChannel.set(info.token, {
+      id: info.channelIds[0],
+      name: info.author || info.title,
+    });
+  }
+  const cached = verdicts.get(data);
+  if (cached?.ver === filterVersion) {
+    return cached.flagged;
+  }
+  const candidates = info.videoIds.length ? info.videoIds : [undefined];
+  let reason: string | null = null;
+  for (const v of candidates) {
+    reason = reasonToSkip(v, info.channelIds, info.title, info.author);
+    if (reason) break;
+  }
+  const flagged = Boolean(reason);
+  verdicts.set(data, { ver: filterVersion, flagged });
+  if (reason && config.reportFeedback) enqueueFeedback(el, info, reason);
+  return flagged;
+};
+
+const updateCardElementVisibility = (
+  el: HTMLElement,
+  flagged: boolean,
+  hasData: boolean,
+) => {
+  const isHidden = el.hasAttribute(HIDDEN_ATTR);
+  const earlyHidden = el.hasAttribute(EARLY_ATTR);
+  if (earlyHidden && hasData) {
+    el.removeAttribute(EARLY_ATTR);
+    if (!flagged) el.style.removeProperty('display');
+  }
+  if (flagged && !isHidden) {
+    el.setAttribute(HIDDEN_ATTR, '');
+    el.style.display = 'none';
+    hiddenCount++;
+  } else if (!flagged && isHidden) {
+    el.removeAttribute(HIDDEN_ATTR);
+    el.style.removeProperty('display');
+    hiddenCount = Math.max(0, hiddenCount - 1);
+  }
+};
+
+const processSearchCard = (el: HTMLElement) => {
+  const raw = (el as { data?: unknown }).data;
+  const data = raw && typeof raw === 'object' ? (raw as Renderer) : undefined;
+  const flagged = data ? evaluateCardData(el, data) : false;
+  updateCardElementVisibility(el, flagged, Boolean(data));
+};
+
 const scanSearchResults = () => {
   if (!active) return;
   lastPageScan = performance.now();
@@ -1028,50 +1084,7 @@ const scanSearchResults = () => {
   // Cards already on the page at the first scan mean the plugin started after
   // the page drew them; that gap is what shows up as "slow".
   for (const el of cards) {
-    const raw = (el as { data?: unknown }).data;
-    const data = raw && typeof raw === 'object' ? (raw as Renderer) : undefined;
-    let flagged = false;
-    if (data) {
-      const info = searchInfo(data);
-      if (info.token && info.channelIds[0] && !tokenChannel.has(info.token)) {
-        tokenChannel.set(info.token, {
-          id: info.channelIds[0],
-          name: info.author || info.title,
-        });
-      }
-      const cached = verdicts.get(data);
-      if (cached?.ver === filterVersion) {
-        flagged = cached.flagged;
-      } else {
-        const candidates = info.videoIds.length ? info.videoIds : [undefined];
-        let reason: string | null = null;
-        for (const v of candidates) {
-          reason = reasonToSkip(v, info.channelIds, info.title, info.author);
-          if (reason) break;
-        }
-        flagged = !!reason;
-        verdicts.set(data, { ver: filterVersion, flagged });
-        if (reason && config.reportFeedback) enqueueFeedback(el, info, reason);
-      }
-    }
-    const isHidden = el.hasAttribute(HIDDEN_ATTR);
-    // Hidden by the preload scanner (early.ts) from link text alone. Once the
-    // card has real data the verdict above is authoritative: keep it hidden (now
-    // counted as ours) or release it; without data we cannot judge yet.
-    const earlyHidden = el.hasAttribute(EARLY_ATTR);
-    if (earlyHidden && data) {
-      el.removeAttribute(EARLY_ATTR);
-      if (!flagged) el.style.removeProperty('display');
-    }
-    if (flagged && !isHidden) {
-      el.setAttribute(HIDDEN_ATTR, '');
-      el.style.display = 'none';
-      hiddenCount++;
-    } else if (!flagged && isHidden) {
-      el.removeAttribute(HIDDEN_ATTR);
-      el.style.removeProperty('display');
-      hiddenCount = Math.max(0, hiddenCount - 1);
-    }
+    processSearchCard(el);
   }
 };
 

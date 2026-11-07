@@ -120,8 +120,8 @@ export const setUpTray = (app: Electron.App, win: Electron.BrowserWindow) => {
     { type: 'separator' },
     {
       label: t('main.tray.restart'),
-      click() {
-        void restart();
+      async click() {
+        await restart();
       },
     },
     { type: 'separator' },

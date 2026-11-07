@@ -33,7 +33,7 @@ export const pickLrchubLrc = (record: LrchubRecord): string =>
 
 const splitArtists = (artists: string) =>
   artists
-    .replace(/\s+(?:feat|ft)\.?\s+/gi, ',')
+    .replace(/\b(?:feat|ft)\b\.?/gi, ',')
     .split(/[,&]/)
     .map((artist) => artist.trim())
     .filter(Boolean);
@@ -53,6 +53,26 @@ const requestOnce = async (
   return [response.status, await response.text()];
 };
 
+const requestWithRetry = async (
+  url: string,
+  init: RequestInit,
+  attempt = 1,
+): Promise<[number, string]> => {
+  let response: [number, string] = [0, ''];
+  try {
+    response = await requestOnce(url, init);
+  } catch (error) {
+    if (attempt >= ATTEMPTS) throw error;
+  }
+
+  if (!isRetryableStatus(response[0]) || attempt >= ATTEMPTS) {
+    return response;
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 750 * attempt));
+  return requestWithRetry(url, init, attempt + 1);
+};
+
 /**
  * LRCHub answers a flat 503 `SERVER_BUSY` when it is overloaded, with a message
  * asking the client to wait and retry. Two short retries keep the provider
@@ -69,22 +89,7 @@ const requestLyrics = async (body: object): Promise<[number, string]> => {
     body: JSON.stringify(body),
   };
 
-  let response: [number, string] = [0, ''];
-
-  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
-    try {
-      response = await requestOnce(url, init);
-    } catch (error) {
-      if (attempt === ATTEMPTS) throw error;
-      response = [0, ''];
-    }
-
-    if (!isRetryableStatus(response[0]) || attempt === ATTEMPTS) break;
-    // NOSONAR(typescript:S9382) - Exponential backoff retry loop requires sequential delay
-    await new Promise((resolve) => setTimeout(resolve, 750 * attempt));
-  }
-
-  return response;
+  return requestWithRetry(url, init);
 };
 
 export class LRCHub implements LyricProvider {

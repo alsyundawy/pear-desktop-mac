@@ -49,19 +49,21 @@ async function listenForApiLoad() {
   }
 }
 
+function setupOsAttribute() {
+  let osType = 'Unknown';
+  if (window.electronIs.osx()) {
+    osType = 'Macintosh';
+  } else if (window.electronIs.windows()) {
+    osType = 'Windows';
+  } else if (window.electronIs.linux()) {
+    osType = 'Linux';
+  }
+  document.documentElement.dataset.os = osType;
+}
+
 async function onApiLoaded() {
   // Workaround for macOS traffic lights
-  {
-    let osType = 'Unknown';
-    if (window.electronIs.osx()) {
-      osType = 'Macintosh';
-    } else if (window.electronIs.windows()) {
-      osType = 'Windows';
-    } else if (window.electronIs.linux()) {
-      osType = 'Linux';
-    }
-    document.documentElement.dataset.os = osType;
-  }
+  setupOsAttribute();
 
   // Workaround for #2459
   document
@@ -458,10 +460,7 @@ const main = async () => {
     if (api) {
       const plugin = getLoadedRendererPlugin(id);
       if (plugin && typeof plugin.renderer !== 'function') {
-        await plugin.renderer?.onPlayerApiReady?.(
-          api,
-          createContext(id),
-        );
+        await plugin.renderer?.onPlayerApiReady?.(api, createContext(id));
       }
     }
   });
@@ -471,7 +470,7 @@ const main = async () => {
     (_event, id: string, newConfig: PluginConfig) => {
       const plugin = getAllLoadedRendererPlugins()[id];
       if (plugin && typeof plugin.renderer !== 'function') {
-        plugin.renderer?.onConfigChange?.(newConfig);
+        void plugin.renderer?.onConfigChange?.(newConfig);
       }
     },
   );
@@ -534,4 +533,10 @@ const initObserver = async () => {
   });
 };
 
-void initObserver().then(preload).then(main);
+const start = async () => {
+  await initObserver();
+  await preload();
+  await main();
+};
+
+void start();

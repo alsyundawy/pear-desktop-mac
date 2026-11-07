@@ -296,6 +296,147 @@ export class Queue {
         .originalDispatch as Store['dispatch'];
   }
 
+  private handleClearEvent() {
+    this.ignoreFlag = true;
+    this.broadcast({
+      type: 'CLEAR_QUEUE',
+      payload: null,
+    });
+  }
+
+  private handleAddItemsEvent(event: { type: string; payload?: unknown }) {
+    if (!this.owner) return;
+    const items = (event.payload as { items?: QueueItem[] } | undefined)?.items;
+    if (!items) return;
+
+    if (this.ignoreFlag) {
+      this.ignoreFlag = false;
+      const videoList = mapQueueItem<VideoData>(
+        (it) => ({
+          videoId: it!.videoId,
+          ownerId: this.owner!.id,
+        }),
+        items,
+      );
+      const index = this._videoList.length;
+
+      if (videoList.length > 0) {
+        this._videoList = videoList.map((it) => ({
+          ...it,
+          ownerId: it.ownerId ?? this.owner?.id,
+        }));
+        this.broadcast({
+          type: 'ADD_SONGS',
+          payload: {
+            videoList,
+          },
+          after: [
+            {
+              type: 'SET_INDEX',
+              payload: {
+                index,
+              },
+            },
+          ],
+        });
+      }
+    } else if (items.length === 1) {
+      const videoList = mapQueueItem<VideoData>(
+        (it) => ({
+          videoId: it!.videoId,
+          ownerId: this.owner!.id,
+        }),
+        items,
+      );
+      const hasIndex = Boolean(
+        event.payload && Object.hasOwn(event.payload, 'index'),
+      );
+      const targetIndex = hasIndex
+        ? (event.payload as { index: number }).index
+        : this._videoList.length;
+
+      this._videoList.splice(
+        targetIndex,
+        0,
+        ...videoList.map((it) => ({
+          ...it,
+          ownerId: it.ownerId ?? this.owner?.id,
+        })),
+      );
+      this.broadcast({
+        type: 'ADD_SONGS',
+        payload: {
+          index: hasIndex
+            ? (event.payload as { index: number }).index
+            : undefined,
+          videoList,
+        },
+      });
+    }
+  }
+
+  private handleCustomEvent(event: {
+    type: string;
+    payload?: unknown;
+  }): boolean {
+    if (event.type === 'CLEAR') {
+      this.handleClearEvent();
+      return true;
+    }
+    if (event.type === 'ADD_ITEMS') {
+      this.handleAddItemsEvent(event);
+      return true;
+    }
+    if (event.type === 'MOVE_ITEM') {
+      const movePayload = event.payload as {
+        fromIndex: number;
+        toIndex: number;
+      };
+      this.broadcast({
+        type: 'MOVE_SONG',
+        payload: {
+          fromIndex: movePayload.fromIndex,
+          toIndex: movePayload.toIndex,
+        },
+      });
+      return true;
+    }
+    if (event.type === 'REMOVE_ITEM') {
+      this.broadcast({
+        type: 'REMOVE_SONG',
+        payload: {
+          index: event.payload as number,
+        },
+      });
+      return true;
+    }
+    if (event.type === 'SET_INDEX') {
+      this.broadcast({
+        type: 'SYNC_PROGRESS',
+        payload: {
+          index: event.payload as number,
+        },
+      });
+      return true;
+    }
+
+    if (event.type === 'SET_HEADER') event.payload = getHeaderPayload();
+    if (event.type === 'ADD_STEERING_CHIPS') {
+      event.type = 'CLEAR_STEERING_CHIPS';
+      event.payload = undefined;
+    }
+    if (
+      event.type === 'SET_PLAYER_UI_STATE' &&
+      (event.payload as string) === 'INACTIVE' &&
+      this.videoList.length > 0
+    ) {
+      return true;
+    }
+    return (
+      event.type === 'HAS_SHOWN_AUTOPLAY' || event.type === 'ADD_AUTOMIX_ITEMS'
+    );
+  }
+
   injection() {
     if (!this.queue) {
       console.error('Queue is not initialized!');
@@ -309,158 +450,8 @@ export class Queue {
         return;
       }
 
-      if (!this.internalDispatch) {
-        if (event.type === 'CLEAR') {
-          this.ignoreFlag = true;
-          this.broadcast({
-            type: 'CLEAR_QUEUE',
-            payload: null,
-          });
-          return;
-        }
-        if (event.type === 'ADD_ITEMS') {
-          if (this.ignoreFlag) {
-            this.ignoreFlag = false;
-            const videoList = mapQueueItem(
-              (it) =>
-                ({
-                  videoId: it!.videoId,
-                  ownerId: this.owner!.id,
-                }) satisfies VideoData,
-              (
-                event.payload! as {
-                  items: QueueItem[];
-                }
-              ).items,
-            );
-            const index = this._videoList.length;
-
-            if (videoList.length > 0) {
-              this._videoList = videoList.map((it) => ({
-                ...it,
-                ownerId: it.ownerId ?? this.owner?.id,
-              }));
-              this.broadcast({
-                // play
-                type: 'ADD_SONGS',
-                payload: {
-                  videoList,
-                },
-                after: [
-                  {
-                    type: 'SET_INDEX',
-                    payload: {
-                      index,
-                    },
-                  },
-                ],
-              });
-            }
-          } else if (
-            (
-              event.payload as {
-                items: unknown[];
-              }
-            ).items.length === 1
-          ) {
-            const videoList = mapQueueItem(
-              (it) =>
-                ({
-                  videoId: it!.videoId,
-                  ownerId: this.owner!.id,
-                }) satisfies VideoData,
-              (
-                event.payload! as {
-                  items: QueueItem[];
-                }
-              ).items,
-            );
-            this._videoList.splice(
-              event.payload && Object.hasOwn(event.payload, 'index')
-                ? (
-                    event.payload as {
-                      index: number;
-                    }
-                  ).index
-                : this._videoList.length,
-              0,
-              ...videoList.map((it) => ({
-                ...it,
-                ownerId: it.ownerId ?? this.owner?.id,
-              })),
-            );
-            this.broadcast({
-              // add playlist
-              type: 'ADD_SONGS',
-              payload: {
-                index:
-                  event.payload && Object.hasOwn(event.payload, 'index')
-                    ? (
-                        event.payload as {
-                          index: number;
-                        }
-                      ).index
-                    : undefined,
-                videoList,
-              },
-            });
-          }
-
-          return;
-        }
-
-        if (event.type === 'MOVE_ITEM') {
-          this.broadcast({
-            type: 'MOVE_SONG',
-            payload: {
-              fromIndex: (
-                event.payload as {
-                  fromIndex: number;
-                }
-              ).fromIndex,
-              toIndex: (
-                event.payload as {
-                  toIndex: number;
-                }
-              ).toIndex,
-            },
-          });
-          return;
-        }
-        if (event.type === 'REMOVE_ITEM') {
-          this.broadcast({
-            type: 'REMOVE_SONG',
-            payload: {
-              index: event.payload as number,
-            },
-          });
-          return;
-        }
-        if (event.type === 'SET_INDEX') {
-          this.broadcast({
-            type: 'SYNC_PROGRESS',
-            payload: {
-              index: event.payload as number,
-            },
-          });
-          return;
-        }
-
-        if (event.type === 'SET_HEADER') event.payload = getHeaderPayload();
-        if (event.type === 'ADD_STEERING_CHIPS') {
-          event.type = 'CLEAR_STEERING_CHIPS';
-          event.payload = undefined;
-        }
-        if (event.type === 'SET_PLAYER_UI_STATE') {
-          if (
-            (event.payload as string) === 'INACTIVE' &&
-            this.videoList.length > 0
-          ) {
-            return;
-          }
-        }
-        if (event.type === 'HAS_SHOWN_AUTOPLAY') return;
-        if (event.type === 'ADD_AUTOMIX_ITEMS') return;
+      if (!this.internalDispatch && this.handleCustomEvent(event)) {
+        return;
       }
 
       const fakeContext = {
