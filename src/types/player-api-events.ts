@@ -255,16 +255,17 @@ export type VideoDataChangeValue = Record<string, unknown> & {
 
   lengthSeconds: number;
 
-  /**
-   * Internal variable (for album data)
-   **/
+  /** Internal variable (for album data) */
   ['\u0079\u0074\u006d\u0064WatchNextResponse']?: WatchNextResponse;
 };
 
 export interface PlayerAPIEvents {
   videodatachange: {
     value: VideoDataChangeValue;
-    name: 'dataloaded' | 'dataupdated';
+    name: 'newdata' | 'dataloaded' | 'dataupdated';
   };
   onStateChange: number;
+  /** Current media position, in seconds. */
+  onVideoProgress: number;
+  onPlaybackAudioChange: unknown;
 }

@@ -353,7 +353,36 @@
     },
     "audio-compressor": {
       "description": "Apply compression to audio (lowers the volume of the loudest parts of the signal and raises the volume of the softest parts)",
+      "menu": {
+        "auto-track-gain": "Auto track gain (boost quiet tracks)",
+        "maximum-gain": {
+          "label": "Maximum gain"
+        }
+      },
       "name": "Audio Compressor"
+    },
+    "audio-track": {
+      "description": "Choose the audio track used for playback and prefer the original audio over auto-dubbed translations",
+      "menu": {
+        "automatic": "Automatic",
+        "prefer-original": "Prefer the original audio",
+        "select-track": "Select audio track…"
+      },
+      "name": "Audio Track",
+      "prompt": {
+        "label": "Select the audio track to use for playback:",
+        "title": "Audio Track"
+      },
+      "settings": {
+        "audio-track": "Audio track",
+        "audio-track-description": "Force a specific audio track. Automatic lets YouTube Music decide per song.",
+        "automatic": "Automatic",
+        "prefer-original": "Prefer the original audio track",
+        "prefer-original-description": "Switch away from auto-dubbed or translated audio back to the original track when both are available."
+      },
+      "toast": {
+        "no-tracks": "No alternative audio tracks are available for this song"
+      }
     },
     "auth-proxy-adapter": {
       "description": "Support for the use of authentication proxy services",
