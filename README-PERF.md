@@ -16,21 +16,21 @@ This document outlines the standard operating procedures for auditing, profiling
 
 1. Launch Pear Desktop with DevTools enabled:
 
-   ```bash
-   pnpm dev
-   ```
+  ```bash
+  pnpm dev
+  ```
 
 2. Press `Cmd+Option+I` (macOS) or `Ctrl+Shift+I` (Windows/Linux) to open Chromium DevTools.
 3. Switch to the **Memory** panel:
-   - Select **Heap snapshot**
-   - Click **Take snapshot** (Baseline `Snapshot 1`)
+  - Select **Heap snapshot**
+  - Click **Take snapshot** (Baseline `Snapshot 1`)
 4. Perform the user scenario under test (e.g., switch 30 songs, toggle video mode, open/close settings).
 5. Trigger manual Garbage Collection (trash can icon in DevTools).
 6. Click **Take snapshot** again (`Snapshot 2`).
 7. Switch view dropdown from **Summary** to **Comparison** against `Snapshot 1`:
-   - Inspect **# Delta** and **Alloc. Size**:
-   - Check for detached DOM trees (`Detached HTMLDivElement`, `Detached HTMLButtonElement`).
-   - Check for uncollected closures or listeners in `event_listeners`.
+  - Inspect **# Delta** and **Alloc. Size**:
+  - Check for detached DOM trees (`Detached HTMLDivElement`, `Detached HTMLButtonElement`).
+  - Check for uncollected closures or listeners in `event_listeners`.
 
 ---
 
@@ -38,20 +38,20 @@ This document outlines the standard operating procedures for auditing, profiling
 
 1. Start Electron with the Node inspector attached to the main process:
 
-   ```bash
-   pnpm start --inspect=9229
-   ```
+  ```bash
+  pnpm start --inspect=9229
+  ```
 
 2. Open Google Chrome or Chromium and navigate to:
 
-   ```text
-   chrome://inspect
-   ```
+  ```text
+  chrome://inspect
+  ```
 
 3. Under **Remote Target**, locate `Pear Desktop / Electron Main Process` and click **inspect**.
 4. In the dedicated Node DevTools:
-   - Run **Profiler** $\rightarrow$ **CPU Profile** during application startup or heavy IPC events to detect main thread stalls.
-   - Run **Memory** $\rightarrow$ **Heap Snapshot** to inspect Node.js heap consumption.
+  - Run **Profiler** $\rightarrow$ **CPU Profile** during application startup or heavy IPC events to detect main thread stalls.
+  - Run **Memory** $\rightarrow$ **Heap Snapshot** to inspect Node.js heap consumption.
 
 ---
 

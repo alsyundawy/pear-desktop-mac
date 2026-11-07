@@ -8,10 +8,10 @@
 
 # Release DocNote: 3.11.9
 
-**Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  
-**Release Version**: `3.11.9` (`v3.11.9`)  
-**Base Version**: `3.11.8` (`v3.11.8`, commit `38bb3e6d`)  
-**Date**: 07 November 2026  
+**Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)<br>
+**Release Version**: `3.11.9` (`v3.11.9`)<br>
+**Base Version**: `3.11.8` (`v3.11.8`, commit `38bb3e6d`)<br>
+**Date**: 07 November 2026<br>
 **Status**: Production-Grade Verified, Linters Clean (0 Errors), Typecheck Clean (0 Errors), Zero-Hallucination, 0 Known Vulnerabilities, 100% Unit Tests Passing (87/87)
 
 ---

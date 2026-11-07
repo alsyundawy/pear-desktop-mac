@@ -1,0 +1,18 @@
+---
+# MegaLinter configuration file
+# https://megalinter.io/configuration/
+
+PRINT_ALPACA: false
+SHOW_ELAPSED_TIME: true
+FILE_FILTER_REGEX_EXCLUDE: "(src/i18n/.*|dist/.*|pack/.*|patches/.*)"
+
+DISABLE_LINTERS:
+  - COPYPASTE_JSCPD
+  - SPELL_CODESPELL
+  - SPELL_CSPELL
+  - ACTION_ZIZMOR
+  - REPOSITORY_DEVSKIM
+  - CSS_STYLELINT
+  - JAVASCRIPT_ESLINT
+  - TYPESCRIPT_ESLINT
+  - TSX_ESLINT

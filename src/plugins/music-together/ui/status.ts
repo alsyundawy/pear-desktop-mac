@@ -17,7 +17,7 @@ export const createStatus = () => {
   const statusLabel = element.querySelector<HTMLSpanElement>(
     '#music-together-status-label',
   )!;
-  const permissionLabel = element.querySelector<HTMLMarqueeElement>(
+  const permissionLabel = element.querySelector<HTMLElement>(
     '#music-together-permission-label',
   )!;
 
