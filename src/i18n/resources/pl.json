@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Blokuj wszystkie reklamy i śledzenie",
+      "description": "Blokuj wszystkie mechanizmy śledzenia od razu po uruchomieniu",
       "menu": {
-        "blocker": "Metoda przechwytywania"
+        "blocker": "Bloker"
       },
-      "name": "Blokowanie reklam"
+      "name": "Nie śledź"
     },
     "downloader": {
       "backend": {

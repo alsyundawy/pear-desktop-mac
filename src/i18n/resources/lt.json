@@ -987,7 +987,7 @@
       "name": "Vizualizatorius"
     },
     "do-not-track": {
-      "description": "Blokuoti visas reklamas ir seklius",
+      "description": "Iš karto blokuoti visą sekimą",
       "menu": {
         "blocker": "Blokuotojas"
       },

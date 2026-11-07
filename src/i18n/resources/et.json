@@ -474,9 +474,9 @@
     "do-not-track": {
       "description": "Blokeeri kõik reklaamid ja jälitajad",
       "menu": {
-        "blocker": "Blokeerijad"
+        "blocker": "Blokeerija"
       },
-      "name": "Reklaamiblokeerija"
+      "name": "Ära jälgi"
     },
     "downloader": {
       "backend": {

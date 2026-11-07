@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "阻擋所有廣告",
+      "description": "啟動時阻擋所有追蹤",
       "menu": {
-        "blocker": "阻擋方式"
+        "blocker": "內容阻擋器"
       },
-      "name": "廣告攔截器"
+      "name": "請勿追蹤"
     },
     "downloader": {
       "backend": {

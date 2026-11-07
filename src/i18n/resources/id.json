@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Blokir semua iklan dan pelacakan di luar kotak",
+      "description": "Blokir seluruh pelacak dari awal",
       "menu": {
-        "blocker": "Pemblokir"
+        "blocker": "Bloker"
       },
-      "name": "Pemblokir Iklan"
+      "name": "Jangan Lacak"
     },
     "downloader": {
       "backend": {
@@ -832,7 +832,7 @@
       "name": "Lewati Keheningan"
     },
     "sponsorblock": {
-      "description": "Lewati bagian non-musik secara otomatis seperti intro/outro atau bagian video musik yang tidak memutar lagu",
+      "description": "Otomatis Melewati bagian yang bukan musik seperti intro/outro atau bagian dari video musik di mana lagu tidak dimainkan",
       "menu": {
         "categories": {
           "filler": "Pengisi / Tangen",
@@ -844,7 +844,8 @@
           "preview": "Pratinjau / Rekap",
           "selfpromo": "Promosi Diri",
           "sponsor": "Sponsor"
-        }
+        },
+        "show-segments": "Tampilkan segmen di bilah progres"
       },
       "name": "SponsorBlock"
     },

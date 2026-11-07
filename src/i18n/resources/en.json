@@ -1013,7 +1013,7 @@
       "name": "Skip Silences"
     },
     "sponsorblock": {
-      "description": "Automatically skips non-music parts like intro/outro or parts of music videos where the song isn't playing",
+      "description": "Automatically Skips non-music parts like intro/outro or parts of music videos where the song isn't playing",
       "menu": {
         "categories": {
           "filler": "Filler / Tangent",
@@ -1025,7 +1025,8 @@
           "preview": "Preview / Recap",
           "selfpromo": "Self Promotion",
           "sponsor": "Sponsor"
-        }
+        },
+        "show-segments": "Show segments on the progress bar"
       },
       "name": "SponsorBlock"
     },

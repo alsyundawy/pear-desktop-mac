@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Bloqueio de todos os anúncios e rastreamentos imediatamente",
+      "description": "Bloqueia todo o rastreamento imediatamente",
       "menu": {
         "blocker": "Bloqueador"
       },
-      "name": "Bloqueador de Anúncios"
+      "name": "Não rastrear"
     },
     "downloader": {
       "backend": {

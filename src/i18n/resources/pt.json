@@ -938,7 +938,12 @@
             "acrylic": "Acrílico",
             "mica": "Mica",
             "none": "Nada",
-            "tabbed": "Separadores"
+            "tabbed": "Separadores",
+            "content": "Conteúdo",
+            "fullscreen-ui": "Interface em tela cheia",
+            "under-page": "Sub Página",
+            "under-window": "Sub Janela",
+            "window": "Janela"
           }
         }
       },
@@ -987,11 +992,11 @@
       "name": "Visualizador"
     },
     "do-not-track": {
-      "description": "Bloquear anúncios e monitorização",
+      "description": "Começar a bloquear a monitorização",
       "menu": {
         "blocker": "Bloqueador"
       },
-      "name": "Bloqueador de anúncios"
+      "name": "Não rastrear"
     }
   }
 }

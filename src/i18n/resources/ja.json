@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "すべての広告とトラッカーをブロックj",
+      "description": "すべてのトラッキングをデフォルトでブロック",
       "menu": {
         "blocker": "ブロッカー"
       },
-      "name": "広告ブロッカー"
+      "name": "トラッキング拒否"
     },
     "downloader": {
       "backend": {

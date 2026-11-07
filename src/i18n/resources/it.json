@@ -938,7 +938,10 @@
             "acrylic": "Acrilico",
             "mica": "Mica",
             "none": "Nessuno",
-            "tabbed": "In scheda"
+            "tabbed": "In scheda",
+            "content": "Contenuto",
+            "fullscreen-ui": "Schermo intero",
+            "window": "Finestra"
           }
         }
       },
@@ -987,11 +990,11 @@
       "name": "Visualizzatore grafico"
     },
     "do-not-track": {
-      "description": "Blocca tutti gli annunci e i tracker",
+      "description": "Disabilita tutti i tracker all'avvio",
       "menu": {
-        "blocker": "Blocco"
+        "blocker": "Blocker"
       },
-      "name": "Ad blocker"
+      "name": "Non tracciare"
     }
   }
 }

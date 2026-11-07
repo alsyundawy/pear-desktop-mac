@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "모든 광고와 트래커를 즉시 차단합니다",
+      "description": "트래커를 차단합니다",
       "menu": {
-        "blocker": "광고 차단 타입"
+        "blocker": "차단기"
       },
-      "name": "광고 차단기"
+      "name": "추적 금지"
     },
     "downloader": {
       "backend": {

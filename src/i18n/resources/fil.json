@@ -487,11 +487,11 @@
       }
     },
     "do-not-track": {
-      "description": "I-block ang lahat ng ad at tracking",
+      "description": "Harangan ang lahat ng pagsubaybay (tracking) nang tuluyan",
       "menu": {
-        "blocker": "Blocker"
+        "blocker": "Tagaharang"
       },
-      "name": "Pag-block ng Ad"
+      "name": "Huwag Subaybayan"
     },
     "downloader": {
       "backend": {

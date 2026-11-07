@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Blockerar annonser och spårning automatiskt",
+      "description": "Blockera all spårning som standard",
       "menu": {
         "blocker": "Blockerare"
       },
-      "name": "Annonsblockerare"
+      "name": "Spåra inte"
     },
     "downloader": {
       "backend": {

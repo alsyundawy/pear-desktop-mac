@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Bloquer toutes les annonces et le suivi par défaut",
+      "description": "Bloque tous les traqueurs par défaut",
       "menu": {
         "blocker": "Bloqueur"
       },
-      "name": "Bloqueur de publicités"
+      "name": "Ne pas traquer"
     },
     "downloader": {
       "backend": {

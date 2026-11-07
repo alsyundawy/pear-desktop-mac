@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Block all ads and tracking out of the box",
+      "description": "Automaticky blokovať všetky sledovače",
       "menu": {
-        "blocker": "Blocker"
+        "blocker": "Blokovanie"
       },
-      "name": "Ad Blocker"
+      "name": "Nesledovať"
     },
     "downloader": {
       "backend": {

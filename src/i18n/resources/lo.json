@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Block all ads and tracking out of the box",
+      "description": "ບລັອກການຕິດຕາມທັງໝົດທັນທີ",
       "menu": {
-        "blocker": "Blocker"
+        "blocker": "ຕົວບລັອກ"
       },
-      "name": "Ad Blocker"
+      "name": "ບໍ່ໃຫ້ຕິດຕາມ"
     },
     "downloader": {
       "backend": {

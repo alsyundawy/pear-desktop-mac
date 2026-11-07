@@ -497,11 +497,11 @@
       }
     },
     "do-not-track": {
-      "description": "חסום את כל המודעות והמעקב מחוץ לקופסה",
+      "description": "חסום את כל המעקב כברירת מחדל",
       "menu": {
         "blocker": "חוסם"
       },
-      "name": "חוסם פרסומות"
+      "name": "אל תעקוב"
     },
     "downloader": {
       "backend": {

@@ -161,7 +161,8 @@
                 "default": "Standaard",
                 "force-show": "Forceren weergeven",
                 "hide": "Verbergen",
-                "label": "Vind ik leuk-knoppen"
+                "label": "Vind ik leuk-knoppen",
+                "swap": "Wissel volgorde van de like knoppen om"
               },
               "remove-upgrade-button": "Upgrade-knop verwijderen",
               "theme": {
@@ -409,7 +410,9 @@
       "description": "Voeg een klok toe aan de navigatiebalk",
       "menu": {
         "format": {
-          "24-hour-format": "24-uursformaat"
+          "24-hour-format": "24-uursformaat",
+          "display-seconds": "Toon Seconden",
+          "label": "Formaat"
         }
       },
       "name": "Klok"
@@ -841,8 +844,14 @@
             "traditional-to-simplified": {
               "label": "Traditioneel naar Vereenvoudigd",
               "tooltip": "Zet Traditioneel Chinees om naar Vereenvoudigd Chinees"
+            },
+            "disabled": {
+              "label": "Uitgeschakeld",
+              "tooltip": "Schakel chinese karakter conversie"
             }
-          }
+          },
+          "label": "Converteer Chinees karakter",
+          "tooltip": "Vertaal Chinese karakters naar Vereenvoudigd of Traditioneel Chinees"
         },
         "default-text-string": {
           "label": "Standaardteken tussen songteksten",
@@ -978,11 +987,11 @@
       "name": "Visualisator"
     },
     "do-not-track": {
-      "description": "Blokkeer alle advertenties en trackers buiten het kader",
+      "description": "standaard alle tracking blokkeren",
       "menu": {
-        "blocker": "Blokkeerder"
+        "blocker": "Blokker"
       },
-      "name": "Advertentieblokkeerder"
+      "name": "Niet tracken"
     }
   }
 }

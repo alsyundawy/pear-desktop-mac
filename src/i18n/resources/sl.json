@@ -171,6 +171,13 @@
                   "import-css-file": "Vstavi poljubni CSS",
                   "no-theme": "Brez teme"
                 }
+              },
+              "custom-window-title": {
+                "label": "Naslovno okno po meri",
+                "prompt": {
+                  "label": "Vnesite poljubno ime okna: (pustite prazno da onemogočite)",
+                  "placeholder": "Primer:{{applicationName}}"
+                }
               }
             }
           }

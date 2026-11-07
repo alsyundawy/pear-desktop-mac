@@ -161,7 +161,8 @@
                 "default": "Lalai",
                 "force-show": "Paksa pamer",
                 "hide": "Sembunyi",
-                "label": "Butang suka"
+                "label": "Butang suka",
+                "swap": "Tukar susunan butang Suka"
               },
               "remove-upgrade-button": "Buang butang naik taraf",
               "theme": {
@@ -230,7 +231,8 @@
           "submenu": {
             "percent": "{{ratio}}%"
           }
-        }
+        },
+        "enable-seekbar": "Benarkan penyesuaian tema bar carian"
       },
       "name": "Tema Warna Album"
     },
@@ -315,6 +317,22 @@
         },
         "port": {
           "label": "Port"
+        },
+        "https": {
+          "label": "HTTPS & Sijil",
+          "submenu": {
+            "cert": {
+              "dialogTitle": "Pilih fail sijil HTTPS",
+              "label": "Fail sijil (.crt/.pem)"
+            },
+            "enable-https": {
+              "label": "Dayakan HTTPS"
+            },
+            "key": {
+              "dialogTitle": "Pilih fail kunci peribadi HTTPS",
+              "label": "Fail kunci peribadi (.key/.pem)"
+            }
+          }
         }
       },
       "name": "Server API [Beta]",
@@ -550,7 +568,8 @@
             "bass-booster": "Penggalak bass"
           }
         }
-      }
+      },
+      "name": "Penyama Bunyi"
     },
     "exponential-volume": {
       "description": "Menjadikan gelangsar kelantangan eksponen supaya lebih mudah memilih kelantangan yang lebih rendah."
@@ -675,11 +694,22 @@
       }
     },
     "do-not-track": {
-      "description": "Sekat semua iklan dan penjejakan di luar kotak",
+      "description": "Sekat semua penjejakan secara lalai",
       "menu": {
         "blocker": "Penyekat"
       },
-      "name": "Penyekat Iklan"
+      "name": "Jangan Jejak"
+    },
+    "clock": {
+      "description": "Tambah jam pada bar navigasi",
+      "menu": {
+        "format": {
+          "24-hour-format": "Format 24 jam",
+          "display-seconds": "Paparkan saat",
+          "label": "Format"
+        }
+      },
+      "name": "Jam"
     }
   }
 }

@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Tüm reklamları ve izleyicileri engelle",
+      "description": "Kurulumdan itibaren tüm izlemeyi engelle",
       "menu": {
         "blocker": "Engelleyici"
       },
-      "name": "Reklam Engelleyici"
+      "name": "İzlemeyi Engelle"
     },
     "downloader": {
       "backend": {
