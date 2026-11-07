@@ -236,6 +236,10 @@
       },
       "name": "Album Color Theme"
     },
+    "always-show-volume-slider": {
+      "name": "Always Show Volume Slider",
+      "description": "Keeps the volume slider visible and draggable instead of only showing it on hover."
+    },
     "ambient-mode": {
       "description": "Applies a lighting effect by casting gentle colors from the video, into your screen’s background",
       "menu": {
@@ -463,6 +467,10 @@
       },
       "name": "Disable Autoplay"
     },
+    "dismiss-multidevice-popup": {
+      "name": "Dismiss Multidevice Popup",
+      "description": "Automatically closes the \"Listen on this device\" popup that appears when playback starts on another device."
+    },
     "discord": {
       "backend": {
         "already-connected": "Attempted to connect with active connection",
@@ -592,6 +600,10 @@
     "exponential-volume": {
       "description": "Makes the volume slider exponential so it's easier to select lower volumes.",
       "name": "Exponential Volume"
+    },
+    "fullscreen-auto-hide": {
+      "name": "Fullscreen Auto-hide",
+      "description": "Automatically hide the player controls and mouse cursor after a few seconds of inactivity while in fullscreen"
     },
     "in-app-menu": {
       "description": "Gives menu-bars a fancy, dark or album-color look",
@@ -804,6 +816,10 @@
         }
       }
     },
+    "seek-shortcuts": {
+      "name": "Seek Shortcuts",
+      "description": "Seek 5 seconds backward/forward with the left/right arrow keys"
+    },
     "shortcuts": {
       "description": "Allows setting global hotkeys for playback (play/pause/next/previous) and turning off media OSD by overriding media keys, turning on Ctrl/CMD + F to search, turning on Linux MPRIS support for media keys, and custom hotkeys for advanced users",
       "menu": {
@@ -938,6 +954,10 @@
     "taskbar-mediacontrol": {
       "description": "Control playback from your Windows taskbar",
       "name": "Taskbar Media Control"
+    },
+    "toast-autoclose": {
+      "name": "Toast Auto-Close",
+      "description": "Automatically close YouTube Music toasts after three seconds"
     },
     "touchbar": {
       "description": "Adds a TouchBar widget for macOS users",

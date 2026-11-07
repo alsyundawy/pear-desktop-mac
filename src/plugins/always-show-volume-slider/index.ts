@@ -1,0 +1,13 @@
+import { t } from '@/i18n';
+import { createPlugin } from '@/utils';
+
+import style from './style.css?inline';
+
+export default createPlugin({
+  name: () => t('plugins.always-show-volume-slider.name'),
+  description: () => t('plugins.always-show-volume-slider.description'),
+  addedVersion: '3.11.9',
+  restartNeeded: false,
+  stylesheets: [style],
+  renderer: {},
+});
