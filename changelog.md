@@ -37,6 +37,10 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Optional Model Context Protocol (MCP) Server (`api-server`)**:
   - Added opt-in Model Context Protocol endpoint at `/mcp` via `@modelcontextprotocol/sdk@1.32.1`.
   - Exposes 49 player tools (playback, queue, lyrics, volume, presets, config) for AI coding assistants and agent pairings.
+- **Code Quality, SonarQube & Linter Zero-Tolerance**:
+  - Remediated all SonarQube diagnostic issues: resolved S3776 (cognitive complexity decomposed in queue event dispatcher, AI slop card evaluator, and renderer setup), S9382 (recursive promise queues replacing busy/retry while loops), S8786 (linear boundary-based regexes), S3735 (clean async/await), S9383/S7785 (floating promise void guarding), and S9423 (specificity scoping in `music-player.css` replacing 11 `!important` declarations).
+  - Ambient declaration modifiers TS1038 and TS1244 corrected in `src/reset.d.ts` and `src/plugins/shortcuts/mpris-service.d.ts`.
+  - Passing 0 warnings and 0 errors across 290 files with Oxlint and 87/87 passing unit tests.
 
 #### [v3.11.8](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.7...v3.11.8)
 

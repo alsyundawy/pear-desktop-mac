@@ -1,8 +1,8 @@
-<!-- markdownlint-disable-file MD033 MD041 -->
+<!-- markdownlint-disable -->
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
-    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.8 Music Client Flyer Banner" width="100%">
+    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.9 Music Client Flyer Banner" width="100%">
   </a>
 </p>
 
@@ -17,7 +17,7 @@
 <h3 align="center">High-Performance, Privacy-Hardened YouTube Music Desktop Client for macOS</h3>
 
 <p align="center">
-  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.11.8-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.11.8"></a>
+  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.11.9-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.11.9"></a>
   <a href="https://apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%20Sequoia%20%7C%20Sonoma%20%7C%20Ventura-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Platform"></a>
   <a href="https://www.electronjs.org/"><img src="https://img.shields.io/badge/Engine-Electron%20%7C%20Node.js-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron Engine"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.x"></a>
@@ -33,7 +33,7 @@
 
 <p align="center">
   <a href="#downloads--artifact-catalogs">
-    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.8-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
+    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.9-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
   </a>
   <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest">
     <img src="https://img.shields.io/badge/🪞_Releases_&_Changelog-GitHub-0284c7?style=for-the-badge&logo=github&logoColor=white" alt="Releases & Changelog">
@@ -50,7 +50,7 @@
 > **[`HARRY DERTIN SUTISNA ALSYUNDAWY (@alsyundawy)`](https://github.com/alsyundawy)** —<br>
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
-> 🍏 **[`Latest Releases (v3.11.8)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
+> 🍏 **[`Latest Releases (v3.11.9)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
 > 📖 **[`Release DocNotes`](DOCNOTE.md)** &nbsp;|&nbsp;
 > 📜 **[`Changelog`](changelog.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
@@ -85,7 +85,7 @@
 - [Plugin System & Custom Extensions](#plugin-system--custom-extensions)
 - [Developer Setup & Quality Verification](#developer-setup--quality-verification)
 - [Code Review & Quality Standards](#code-review--quality-standards)
-- [Changelog (v3.11.8)](#changelog-v3118)
+- [Changelog (v3.11.9)](#changelog-v3119)
 - [Upstream Credits & Attribution](#upstream-credits--attribution)
 - [FAQ & Troubleshooting](#faq--troubleshooting)
 - [Support & Donation](#support--donation)
@@ -112,7 +112,12 @@
 | **Multi-Engine Ad Blocker**            | `@ghostery/adblocker-electron` + 27 vendor filter lists (EasyList, EasyPrivacy, uBlock, HaGeZi Multi PRO, Threat Intelligence) + `AdSpeedup` fallback. | Complete elimination of pre-roll, mid-roll, popup, and banner ads without broken DOM placeholders or playback stalls.                 |
 | **SponsorBlock Integration**           | SponsorBlock REST API integration with real-time category configuration, non-blocking segment caching, and RFC 3986 parameter sanitization.            | Automatically skips intros, outros, sponsored pitches, and non-music banter; customizable per category.                               |
 | **Hardware-Accelerated Ambient Mode**  | GPU canvas blending via `context.drawImage` with dynamic alpha compositing, replacing synchronous CPU pixel readback (`getImageData`).                 | Eliminates GPU pipeline stalls, slashes CPU utilization by over 70%, and extends MacBook battery life during long listening sessions. |
-| **Real-Time Synced Lyrics**            | Multi-source LRC parser engine querying YouTube Music, Genius, LRCLib, Megalobiz, and MusixMatch with syllable-level timing.                           | Karaoke-style synchronized lyrics displayed right in the player sidebar or floating overlay window.                                   |
+| **Real-Time Synced Lyrics**            | Multi-source LRC parser engine querying YouTube Music, Genius, LRCLib, Megalobiz, SimpMusic, and LRCHub with syllable/word-level timing.               | Karaoke-style synchronized lyrics displayed right in the player sidebar or floating overlay window with compositor-friendly glow.    |
+| **11-Band Parametric Equalizer**       | Ears-style 11-band parametric equalizer rewrite featuring real-time interactive SVG frequency curve, smooth audio ramps, and output trim gain node.     | Audiophile-grade precision tuning with instant preset switching, legacy 5/10-band config migration, and zero audio clipping.          |
+| **Auto Track Gain Compressor**         | DynamicsCompressorNode and automated pre-gain envelope follower integrated into shared WebAudio graph.                                                 | Dynamic loudness leveling that boosts quiet recordings without clipping or pumping artifacts.                                         |
+| **Audio Track Selector**               | Native Electron menu track selector intercepting YouTube multilingual audio tracks.                                                                    | Automatically selects the original native audio track and bypasses auto-dubbed/translated language variants.                         |
+| **Skip AI Slop & Content Filter**      | Rule-based filter checking titles, artists, and channel IDs with custom keyword/channel blocklists (`skip-ai-slop`, `sfw-music`, `prefer-song`).       | Shields queues from low-effort AI audio spam, hides explicit songs when configured, and prioritizes studio releases over videos.      |
+| **Model Context Protocol (MCP) Server**| Opt-in `/mcp` Streamable HTTP JSON-RPC endpoint powered by `@modelcontextprotocol/sdk` exposing 49 desktop player tools.                              | Seamless pair programming and remote control for AI assistants (Cursor, Antigravity, Claude Code) with token authentication.         |
 | **Last.fm & Scrobbler Engine**         | Non-blocking asynchronous scrobbling client with interactive authentication and zero main-process busy-wait loops.                                     | Automatically logs music scrobbles to Last.fm, ListenBrainz, and Libre.fm with offline queue support.                                 |
 | **Smooth Audio Crossfade**             | Dual-track WebAudio gain node crossfade with volume state restoration and leak-free video listener teardown.                                           | Seamless, gapless DJ transitions between songs with zero audio pops, crackles, or unintended muting bugs.                             |
 | **Content Warning Auto-Dismiss**       | Multi-language MutationObserver phrase matcher across 11 languages (EN, ID, DE, FR, PT, ES, RU, ZH, JA, KO, AR).                                       | Automatically acknowledges and dismisses suicide/self-harm content warning screens that otherwise freeze playback.                    |
@@ -190,8 +195,8 @@ Official distribution packages are compiled, signed, and published for macOS und
 
 | Target Architecture       | Package Type     | Minimum OS | File Artifact Name                   | File Size  | SHA-256 Digest                                                     |
 | :------------------------ | :--------------- | :--------- | :----------------------------------- | :--------- | :----------------------------------------------------------------- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8-arm64.dmg`     | 112.35 MiB | `b9c09142e0bff3d18997ce7374568d27974af201c159f7c5aca85d4537af2126` |
-| **Intel x64**             | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8-x64.dmg`       | 116.77 MiB | `e546ce1c4c5e78cc9f6c28c37ece374c5a72296a566aa76d3b074b770b225dfa` |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.9-arm64.dmg`     | *CI Build* | *See Release Assets*                                               |
+| **Intel x64**             | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.9-x64.dmg`       | 124.08 MiB | `e6aaae8f465510e5b2536e115b03af5995dee1975e6a7d3e839626b5a05a0d79` |
 
 ---
 
@@ -329,7 +334,43 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 
 ---
 
-## Changelog (v3.11.8)
+## Changelog (v3.11.9)
+
+### [v3.11.9] — 07 November 2026 (Production Release: Feature Porting, Equalizer Overhaul, MCP Server & Security Remediation)
+
+- **Security Hardening & Dependabot Alert Remediation (0 Vulnerabilities)**:
+  - Remediated 100% of open Dependabot alerts across direct and transitive dependencies, achieving 0 known vulnerabilities in `pnpm audit`.
+  - Upgraded direct dependencies: `electron@42.11.16` (pinned floor supporting macOS 11/12), `happy-dom@21.0.4`, `hono@4.13.13`, `zod@4.6.6`, `html-to-text@10.0.1`, and `glob@14.0.4`.
+  - Configured workspace-level dependency overrides in `pnpm-workspace.yaml` for `compression`, `fast-uri`, `ip-address`, `minimatch`, `seroval`, `source-map-js`, `toml`, `undici`, `zod`, and `glob`.
+- **Modular Quality of Life & UI Plugins**:
+  - **Always Show Volume Slider (`always-show-volume-slider`)**: Permanently expands and reveals the player volume slider bar without requiring mouse hover.
+  - **Dismiss Multi-device Popup (`dismiss-multidevice-popup`)**: Automatically detects and dismisses YouTube Music's interrupting "Are you still listening?" and multi-device session modal.
+  - **Fullscreen Auto-Hide (`fullscreen-auto-hide`)**: Seamlessly hides player controls and mouse cursor after a few seconds of inactivity while in fullscreen mode.
+  - **Seek Shortcuts (`seek-shortcuts`)**: Configurable keyboard navigation shortcuts (Left/Right arrow keys) for jumping backward/forward by custom second intervals.
+  - **Toast Autoclose (`toast-autoclose`)**: Automatically dismisses floating notification toasts after a configurable duration.
+- **Content Curation & Audio Playback Selection Plugins**:
+  - **Prefer Song (`prefer-song`)**: Prioritizes standard studio audio tracks over music video uploads and auto-selects song versions.
+  - **SFW Music (`sfw-music`)**: Filters and hides explicit tracks and adult content from view and playlist queues.
+  - **Skip AI Slop (`skip-ai-slop`)**: Advanced rule-based filter that blocks AI-generated audio slop and spam channels with keyword and channel blacklists.
+- **Audio Architecture & Equalizer Upgrade**:
+  - **Audio Track Selector (`audio-track`)**: Selects original audio tracks and skips auto-dubbed/translated language variants.
+  - **Auto Track Gain Compressor (`audio-compressor`)**: Shared audio graph integration with dynamic loudness compensation and dynamic gain without clipping.
+  - **11-Band Parametric Equalizer (`equalizer`)**: Complete Ears-style 11-band parametric equalizer rewrite featuring real-time interactive SVG frequency curve, smooth audio ramps, output trim, and backwards-compatible preset migration.
+- **Synced Lyrics Enhancements & Overload Resilience (`synced-lyrics`)**:
+  - Added new community providers: **LRCHub** and **SimpMusic** (with Apple Music rich-sync conversion).
+  - Hardened LRCLib against 503 ServerOverloaded errors with full-text search (`q`), exponential jitter retries, and Jaro-Winkler collaborator matching.
+  - Fixed timestamp offset calculations on lines containing multiple timestamps.
+  - Compositor-accelerated lyric glow using `filter: drop-shadow(...)` reducing main-thread repaints from ~475/s to ~28/s under Performance Mode.
+- **App Performance & Background Resource Throttling**:
+  - Window inactivity watcher and background IPC progress throttling (1Hz unfocused vs 4Hz focused).
+  - Background Blink resource cache purging after 60 seconds hidden in system tray and automatic stale code cache clearance on launch.
+- **Optional Model Context Protocol (MCP) Server (`api-server`)**:
+  - Added opt-in Model Context Protocol endpoint at `/mcp` via `@modelcontextprotocol/sdk@1.32.1`.
+  - Exposes 49 player tools (playback, queue, lyrics, volume, presets, config) for AI coding assistants and agent pairings.
+- **Code Quality, SonarQube & Linter Zero-Tolerance**:
+  - Remediated all SonarQube diagnostic issues: resolved S3776 (cognitive complexity decomposed in queue event dispatcher, AI slop card evaluator, and renderer setup), S9382 (recursive promise queues replacing busy/retry while loops), S8786 (linear boundary-based regexes), S3735 (clean async/await), S9383/S7785 (floating promise void guarding), and S9423 (specificity scoping in `music-player.css` replacing 11 `!important` declarations).
+  - Ambient declaration modifiers TS1038 and TS1244 corrected in `src/reset.d.ts` and `src/plugins/shortcuts/mpris-service.d.ts`.
+  - Passing 0 warnings and 0 errors across 290 files with Oxlint and 87/87 passing unit tests.
 
 ### [v3.11.8] — 01 October 2026 (Production Release: Release Auto-Update, Lyrics Overhaul & Hardening)
 
