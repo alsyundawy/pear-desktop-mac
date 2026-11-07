@@ -4,6 +4,40 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.11.9](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.8...v3.11.9)
+
+> 07 November 2026
+
+- **Security Hardening & Dependabot Alert Remediation (0 Vulnerabilities)**:
+  - Remediated 100% of open Dependabot alerts across direct and transitive dependencies, achieving 0 known vulnerabilities in `pnpm audit`.
+  - Upgraded direct dependencies: `electron@42.11.16` (pinned floor supporting macOS 11/12), `happy-dom@21.0.4`, `hono@4.13.13`, `zod@4.6.6`, `html-to-text@10.0.1`, and `glob@14.0.4`.
+  - Configured workspace-level dependency overrides in `pnpm-workspace.yaml` for `compression`, `fast-uri`, `ip-address`, `minimatch`, `seroval`, `source-map-js`, `toml`, `undici`, `zod`, and `glob`.
+- **Modular Quality of Life & UI Plugins**:
+  - **Always Show Volume Slider (`always-show-volume-slider`)**: Permanently expands and reveals the player volume slider bar without requiring mouse hover.
+  - **Dismiss Multi-device Popup (`dismiss-multidevice-popup`)**: Automatically detects and dismisses YouTube Music's interrupting "Are you still listening?" and multi-device session modal.
+  - **Fullscreen Auto-Hide (`fullscreen-auto-hide`)**: Seamlessly hides player controls and mouse cursor after a few seconds of inactivity while in fullscreen mode.
+  - **Seek Shortcuts (`seek-shortcuts`)**: Configurable keyboard navigation shortcuts (Left/Right arrow keys) for jumping backward/forward by custom second intervals.
+  - **Toast Autoclose (`toast-autoclose`)**: Automatically dismisses floating notification toasts after a configurable duration.
+- **Content Curation & Audio Playback Selection Plugins**:
+  - **Prefer Song (`prefer-song`)**: Prioritizes standard studio audio tracks over music video uploads and auto-selects song versions.
+  - **SFW Music (`sfw-music`)**: Filters and hides explicit tracks and adult content from view and playlist queues.
+  - **Skip AI Slop (`skip-ai-slop`)**: Advanced rule-based filter that blocks AI-generated audio slop and spam channels with keyword and channel blacklists.
+- **Audio Architecture & Equalizer Upgrade**:
+  - **Audio Track Selector (`audio-track`)**: Selects original audio tracks and skips auto-dubbed/translated language variants.
+  - **Auto Track Gain Compressor (`audio-compressor`)**: Shared audio graph integration with dynamic loudness compensation and dynamic gain without clipping.
+  - **11-Band Parametric Equalizer (`equalizer`)**: Complete Ears-style 11-band parametric equalizer rewrite featuring real-time interactive SVG frequency curve, smooth audio ramps, output trim, and backwards-compatible preset migration.
+- **Synced Lyrics Enhancements & Overload Resilience (`synced-lyrics`)**:
+  - Added new community providers: **LRCHub** and **SimpMusic** (with Apple Music rich-sync conversion).
+  - Hardened LRCLib against 503 ServerOverloaded errors with full-text search (`q`), exponential jitter retries, and Jaro-Winkler collaborator matching.
+  - Fixed timestamp offset calculations on lines containing multiple timestamps.
+  - Compositor-accelerated lyric glow using `filter: drop-shadow(...)` reducing main-thread repaints from ~475/s to ~28/s under Performance Mode.
+- **App Performance & Background Resource Throttling**:
+  - Window inactivity watcher and background IPC progress throttling (1Hz unfocused vs 4Hz focused).
+  - Background Blink resource cache purging after 60 seconds hidden in system tray and automatic stale code cache clearance on launch.
+- **Optional Model Context Protocol (MCP) Server (`api-server`)**:
+  - Added opt-in Model Context Protocol endpoint at `/mcp` via `@modelcontextprotocol/sdk@1.32.1`.
+  - Exposes 49 player tools (playback, queue, lyrics, volume, presets, config) for AI coding assistants and agent pairings.
+
 #### [v3.11.8](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.7...v3.11.8)
 
 > 01 October 2026

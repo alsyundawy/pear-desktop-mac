@@ -1,21 +1,41 @@
 import { defineConfig } from '@playwright/test';
 
+const ELECTRON_TESTS = [
+  'tests/index.test.js',
+  'tests/do-not-track.test.js',
+  'tests/ipc-subscription.test.js',
+  'tests/settings-window.test.js',
+];
+
 export default defineConfig({
   testDir: '.',
-  testMatch: [
-    'tests/**/*.test.ts',
-    'tests/**/*.test.js',
-    'src/**/*.test.ts',
-    'src/**/*.test.js',
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
+  fullyParallel: false,
+  workers: 1,
+  reporter: 'list',
+  projects: [
+    {
+      name: 'unit',
+      testIgnore: [
+        ...ELECTRON_TESTS,
+        '**/node_modules/**',
+        '**/.kilo/**',
+        '**/.git/**',
+        '**/dist/**',
+        '**/pack/**',
+        '**/.vite-inspect/**',
+      ],
+      testMatch: [
+        'tests/**/*.test.ts',
+        'src/**/*.test.ts',
+        'src/**/*.test.js',
+      ],
+    },
+    {
+      name: 'electron',
+      testMatch: ELECTRON_TESTS,
+      timeout: 120_000,
+    },
   ],
-  testIgnore: [
-    '**/node_modules/**',
-    '**/.kilo/**',
-    '**/.git/**',
-    '**/dist/**',
-    '**/pack/**',
-    '**/.vite-inspect/**',
-  ],
-  // Prevent concurrent Electron launches in tests if multiple tests are run
-  workers: process.env.CI ? 1 : undefined,
 });
