@@ -158,9 +158,12 @@ export const retrySearch = (provider: ProviderName, info: SongInfo) => {
     };
   });
 
-  providers[provider]
+  const targetProvider = (providers as Record<string, any>)[provider];
+  if (!targetProvider) return;
+
+  targetProvider
     .search(info)
-    .then((res) => {
+    .then((res: any) => {
       setLyricsStore('lyrics', (old) => {
         return {
           ...old,
@@ -168,7 +171,7 @@ export const retrySearch = (provider: ProviderName, info: SongInfo) => {
         };
       });
     })
-    .catch((error) => {
+    .catch((error: any) => {
       setLyricsStore('lyrics', (old) => {
         return {
           ...old,

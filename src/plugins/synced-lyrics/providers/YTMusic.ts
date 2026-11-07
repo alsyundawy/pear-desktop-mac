@@ -1,3 +1,5 @@
+import { config } from '../renderer/renderer';
+
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 import type { MusicPlayerAppElement } from '@/types/music-player-app-element';
 
@@ -12,32 +14,9 @@ const client = {
 };
 
 export class YTMusic implements LyricProvider {
-  public readonly name = 'YTMusic';
-  public readonly baseUrl =
+  public name = 'YTMusic';
+  public baseUrl =
     'https://music.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com/';
-
-  private extractPlainLyrics(
-    contents: BrowseData['contents'],
-    syncedLines?: SyncedLyricLine[],
-  ): string | undefined {
-    if (syncedLines?.length) {
-      return syncedLines.map((it) => it.lyricLine).join('\n');
-    }
-
-    const messageRuns = contents?.messageRenderer?.text?.runs;
-    if (Array.isArray(messageRuns)) {
-      return messageRuns.map((it) => it.text).join('\n');
-    }
-
-    const shelfRuns =
-      contents?.sectionListRenderer?.contents?.[0]
-        ?.musicDescriptionShelfRenderer?.description?.runs;
-    if (Array.isArray(shelfRuns)) {
-      return shelfRuns.map((it) => it.text).join('\n');
-    }
-
-    return undefined;
-  }
 
   // prettier-ignore
   public async search(
@@ -62,38 +41,39 @@ export class YTMusic implements LyricProvider {
     const { browseId } = lyricsTab?.tabRenderer?.endpoint?.browseEndpoint ?? {};
     if (!browseId) return null;
 
-    const { contents } = await this.fetchBrowse(browseId);
+    const browseData = await this.fetchBrowse(browseId);
+    if (!browseData) return null;
+    const { contents } = browseData;
     if (!contents) return null;
 
-    /*
-      NOTE: Due to the nature of the library, the json responses are not consistent,
-            this means we have to check for multiple possible paths to get the lyrics.
-    */
+    // NOTE: the JSON responses are not consistent, so several paths may hold the lyrics.
 
     const syncedLines = contents?.elementRenderer?.newElement?.type
       ?.componentType?.model?.timedLyricsModel?.lyricsData?.timedLyricsData;
 
     const synced = syncedLines?.length && syncedLines[0]?.cueRange
-      ? syncedLines.map((it) => {
-        const startMs = Number.parseInt(it.cueRange.startTimeMilliseconds, 10);
-        const endMs = Number.parseInt(it.cueRange.endTimeMilliseconds, 10);
-        return {
-          time: this.millisToTime(startMs),
-          timeInMs: startMs,
-          duration: endMs - startMs,
-          text: it.lyricLine.trim() === '♪' ? '' : it.lyricLine.trim(),
-          status: 'upcoming' as const,
-        };
-      })
+      ? syncedLines.map((it) => ({
+        time: this.millisToTime(parseInt(it.cueRange.startTimeMilliseconds)),
+        timeInMs: parseInt(it.cueRange.startTimeMilliseconds),
+        duration: parseInt(it.cueRange.endTimeMilliseconds) -
+          parseInt(it.cueRange.startTimeMilliseconds),
+        text: it.lyricLine.trim() === '♪' ? '' : it.lyricLine.trim(),
+        status: 'upcoming' as const,
+      }))
       : undefined;
 
+    // Plain lyrics only come from the lyrics shelf: `messageRenderer` and
+    // `musicMessageModel` hold the provider's localized "no lyrics" message.
     const plain = !synced
-      ? this.extractPlainLyrics(contents, syncedLines)
+      ? syncedLines?.length
+        ? syncedLines.map((it) => it.lyricLine).join('\n')
+        : contents?.sectionListRenderer?.contents?.[0]
+          ?.musicDescriptionShelfRenderer?.description?.runs?.map((it) =>
+            it.text,
+          )?.join('\n')
       : undefined;
 
-    if (typeof plain === 'string' && plain === 'Lyrics not available') {
-      return null;
-    }
+    if (!synced?.length && !plain?.trim()) return null;
 
     if (synced?.length && synced[0].timeInMs > 300) {
       synced.unshift({
@@ -116,16 +96,17 @@ export class YTMusic implements LyricProvider {
 
   private millisToTime(millis: number) {
     const minutes = Math.floor(millis / 60000);
-    const minuteRemainder = millis % 60000;
-    const seconds = Math.floor(minuteRemainder / 1000);
-    const remaining = Math.floor((minuteRemainder % 1000) / 10);
+    const seconds = Math.floor((millis - minutes * 60 * 1000) / 1000);
+    const remaining = Math.floor(
+      (millis - minutes * 60 * 1000 - seconds * 1000) / 10,
+    );
     return `${minutes.toString().padStart(2, '0')}:${seconds
       .toString()
       .padStart(2, '0')}.${remaining.toString().padStart(2, '0')}`;
   }
 
-  // RATE LIMITED (2 req per sec)
-  private readonly PROXIED_ENDPOINT = 'https://b-ytmbrowseproxy.zvz.be/';
+  // RATE LIMITED: 2 req per sec
+  private PROXIED_ENDPOINT = 'https://ytmbrowseproxy.zvz.be/';
 
   private fetchNext(videoId: string) {
     const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
@@ -142,19 +123,67 @@ export class YTMusic implements LyricProvider {
     });
   }
 
-  private fetchBrowse(browseId: string) {
-    return fetch(this.PROXIED_ENDPOINT + 'browse?prettyPrint=false', {
-      headers,
-      method: 'POST',
-      body: JSON.stringify({
-        browseId,
-        context: { client },
-      }),
-    }).then((res) => res.json()) as Promise<BrowseData>;
+  private async fetchBrowse(browseId: string): Promise<BrowseData | null> {
+    if (config()?.useYTMLyricsWithoutProxy) {
+      return this.fetchBrowseDirect(browseId);
+    }
+
+    const proxied = await this.fetchBrowseProxied(browseId);
+    if (proxied) {
+      return proxied;
+    }
+
+    return this.fetchBrowseDirect(browseId);
+  }
+
+  private async fetchBrowseProxied(
+    browseId: string,
+  ): Promise<BrowseData | null> {
+    try {
+      const response = await fetch(
+        this.PROXIED_ENDPOINT + 'browse?prettyPrint=false',
+        {
+          headers,
+          method: 'POST',
+          body: JSON.stringify({
+            browseId,
+            context: { client },
+          }),
+        },
+      );
+      if (!response.ok) return null;
+
+      const body = (await response.text()).trim();
+      if (!body || body.startsWith('<')) return null;
+
+      try {
+        return JSON.parse(body) as BrowseData;
+      } catch {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  // Calls browse through the app's authenticated network manager, which injects
+  // the visitor/auth tokens the direct call lacks in geo-restricted regions.
+  private async fetchBrowseDirect(
+    browseId: string,
+  ): Promise<BrowseData | null> {
+    const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
+    if (!app) {
+      return null;
+    }
+
+    return await app.networkManager.fetch<BrowseData, { browseId: string }>(
+      '/browse?prettyPrint=false',
+      { browseId },
+    );
   }
 }
 
-interface NextData {
+export interface NextData {
   contents: {
     singleColumnMusicWatchNextResultsRenderer: {
       tabbedRenderer: {
@@ -171,24 +200,37 @@ interface NextData {
                   };
                 };
               };
+              content: {
+                musicQueueRenderer: {
+                  content: {
+                    playlistPanelRenderer: {
+                      contents: Array<{
+                        playlistPanelVideoRenderer: unknown;
+                      }>;
+                    };
+                  };
+                };
+              };
             };
           }[];
         };
       };
     };
   };
+  queueContextParams: string;
+  playerOverlays: unknown;
 }
 
 interface BrowseData {
-  contents: {
-    elementRenderer: {
-      newElement: {
-        type: {
-          componentType: {
-            model: {
-              timedLyricsModel: {
-                lyricsData: {
-                  timedLyricsData: SyncedLyricLine[];
+  contents?: {
+    elementRenderer?: {
+      newElement?: {
+        type?: {
+          componentType?: {
+            model?: {
+              timedLyricsModel?: {
+                lyricsData?: {
+                  timedLyricsData?: SyncedLyricLine[];
                 };
               };
             };
@@ -196,13 +238,10 @@ interface BrowseData {
         };
       };
     };
-    messageRenderer: {
-      text: PlainLyricsTextRenderer;
-    };
-    sectionListRenderer: {
-      contents: {
-        musicDescriptionShelfRenderer: {
-          description: PlainLyricsTextRenderer;
+    sectionListRenderer?: {
+      contents?: {
+        musicDescriptionShelfRenderer?: {
+          description?: PlainLyricsTextRenderer;
         };
       }[];
     };

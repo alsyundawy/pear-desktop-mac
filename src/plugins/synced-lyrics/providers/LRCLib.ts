@@ -1,127 +1,215 @@
-import { isSongMatch } from './matcher';
+import { jaroWinkler } from '@skyra/jaro-winkler';
+
+import {
+  buildSearchQueries,
+  isRetryableStatus,
+  isUsableSearchRecord,
+  isWithinDurationTolerance,
+  LRCLIB_CLIENT_ID,
+  MAX_SEARCH_ATTEMPTS,
+  parseSearchResponse,
+  rankSearchResults,
+  retryDecision,
+  splitArtists,
+  type LRCLIBSearchResponse,
+} from './lrclib-utils';
 
 import { LRC } from '../parsers/lrc';
+import { netFetch } from '../renderer/ipc-bridge';
 import { config } from '../renderer/renderer';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
-export class LRCLib implements LyricProvider {
-  readonly name = 'LRCLib';
-  readonly baseUrl = 'https://lrclib.net';
-
-  private async querySearch(
-    query: URLSearchParams,
-  ): Promise<LRCLIBSearchResponse> {
-    const url = `${this.baseUrl}/api/search?${query.toString()}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`bad HTTPStatus(${response.statusText})`);
-    }
-
-    const data: unknown = await response.json();
-    if (!Array.isArray(data)) {
-      throw new TypeError(`Expected an array, instead got ${typeof data}`);
-    }
-
-    return data as LRCLIBSearchResponse;
-  }
-
-  private async fetchCandidates({
-    title,
-    alternativeTitle,
-    artist,
-    album,
-  }: SearchSongInfo): Promise<LRCLIBSearchResponse> {
-    const query = new URLSearchParams({
-      artist_name: artist,
-      track_name: title,
+const sendSearchRequest = async (
+  url: string,
+): Promise<{
+  status: number;
+  statusText: string;
+  body: string;
+  retryAfterHeader?: string;
+}> => {
+  if (typeof netFetch === 'function') {
+    const [status, body, responseHeaders] = await netFetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Lrclib-Client': LRCLIB_CLIENT_ID,
+        'User-Agent': LRCLIB_CLIENT_ID,
+      },
     });
-
-    if (album && album !== 'undefined') {
-      query.set('album_name', album);
-    }
-
-    let data = await this.querySearch(query);
-
-    if (data.length === 0 && config()?.showLyricsEvenIfInexact) {
-      const trackName = alternativeTitle || title;
-      data = await this.querySearch(
-        new URLSearchParams({ q: `${trackName} ${artist}`.trim() }),
-      );
-
-      if (data.length === 0 && alternativeTitle) {
-        data = await this.querySearch(
-          new URLSearchParams({ q: `${title} ${artist}`.trim() }),
-        );
-      }
-    }
-
-    return data;
+    return {
+      status,
+      statusText: '',
+      body,
+      retryAfterHeader: Object.entries(responseHeaders).find(
+        ([key]) => key.toLowerCase() === 'retry-after',
+      )?.[1],
+    };
   }
 
-  private findBestMatch(
-    data: LRCLIBSearchResponse,
-    { title, alternativeTitle, artist, songDuration }: SearchSongInfo,
-  ): LRCLIBRecord | null {
-    const filteredResults = [];
-    for (const item of data) {
-      if (!item.trackName || !item.artistName) continue;
+  const response = await fetch(url, {
+    headers: {
+      'Accept': 'application/json',
+      'Lrclib-Client': LRCLIB_CLIENT_ID,
+    },
+  });
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    body: await response.text(),
+    retryAfterHeader: response.headers.get('retry-after') ?? undefined,
+  };
+};
 
-      if (
-        !isSongMatch(
-          title,
-          alternativeTitle,
-          artist,
-          item.trackName,
-          item.artistName,
-        )
-      ) {
+export class LRCLib implements LyricProvider {
+  name = 'LRCLib';
+  baseUrl = 'https://lrclib.net';
+
+  private sleepWithJitter(baseDelayMs: number): Promise<void> {
+    const jitter = Math.random() * 0.3;
+    return new Promise((resolve) => {
+      setTimeout(resolve, Math.round(baseDelayMs * (1 + jitter)));
+    });
+  }
+
+  private async fetchSearch(
+    q: string,
+    maxAttempts = MAX_SEARCH_ATTEMPTS,
+  ): Promise<LRCLIBSearchResponse> {
+    const url = `${this.baseUrl}/api/search?${new URLSearchParams({ q }).toString()}`;
+    let lastStatus = 0;
+    let lastStatusText = '';
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let response: Awaited<ReturnType<typeof sendSearchRequest>>;
+
+      try {
+        response = await sendSearchRequest(url);
+      } catch (error) {
+        if (attempt === maxAttempts) throw error;
+        await this.sleepWithJitter(1000 * attempt);
         continue;
       }
 
-      filteredResults.push(item);
+      const { status, statusText, body, retryAfterHeader } = response;
+      if (status >= 200 && status < 300) {
+        return parseSearchResponse(body);
+      }
+
+      lastStatus = status;
+      lastStatusText = statusText;
+
+      const decision = retryDecision({
+        status,
+        attempt,
+        maxAttempts,
+        retryAfterHeader,
+      });
+      if (!decision.retry) break;
+      await this.sleepWithJitter(decision.delayMs);
     }
 
-    filteredResults.sort(({ duration: durationA }, { duration: durationB }) => {
-      const left = Math.abs(durationA - songDuration);
-      const right = Math.abs(durationB - songDuration);
-      return left - right;
-    });
-
-    const closestResult = filteredResults[0];
-    if (
-      !closestResult ||
-      !isSongMatch(
-        title,
-        alternativeTitle,
-        artist,
-        closestResult.trackName,
-        closestResult.artistName,
-      )
-    ) {
-      return null;
-    }
-
-    if (
-      Math.abs(closestResult.duration - songDuration) > 15 ||
-      closestResult.instrumental ||
-      (!closestResult.syncedLyrics && !closestResult.plainLyrics)
-    ) {
-      return null;
-    }
-
-    return closestResult;
+    throw Object.assign(
+      new Error(
+        `bad HTTPStatus(${lastStatus}${lastStatusText ? ` ${lastStatusText}` : ''})`,
+      ),
+      { status: lastStatus },
+    );
   }
 
-  async search(info: SearchSongInfo): Promise<LyricResult | null> {
-    const data = await this.fetchCandidates(info);
-    if (data.length === 0) {
+  async search({
+    title,
+    alternativeTitle,
+    artist,
+    songDuration,
+    tags,
+  }: SearchSongInfo): Promise<LyricResult | null> {
+    const allowInexact = Boolean(config()?.showLyricsEvenIfInexact);
+    const candidateQueries = buildSearchQueries({
+      title,
+      alternativeTitle,
+      artist,
+      allowInexact,
+    });
+
+    let data: LRCLIBSearchResponse = [];
+    let lastError: Error | undefined;
+
+    for (let i = 0; i < candidateQueries.length; i++) {
+      const isLast = i === candidateQueries.length - 1;
+
+      try {
+        const results = await this.fetchSearch(
+          candidateQueries[i],
+          isLast ? MAX_SEARCH_ATTEMPTS : 2,
+        );
+        lastError = undefined;
+        if (results.length > 0) {
+          data = results;
+          break;
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        const status = (error as { status?: number }).status;
+        if (isLast || status === 429 || status === 503) break;
+      }
+    }
+
+    if (data.length === 0 && lastError) {
+      const status = (lastError as { status?: number }).status;
+      if (status !== undefined && isRetryableStatus(status)) {
+        // Overloaded, not broken: no lyrics from this provider right now.
+        return null;
+      }
+
+      throw lastError;
+    }
+
+    const artists = splitArtists(artist);
+    const filteredResults = data.filter((item) => {
+      if (!isUsableSearchRecord(item)) return false;
+
+      const itemArtists = splitArtists(item.artistName);
+      const permutations: [string, string][] = [];
+      for (const artistA of artists) {
+        for (const artistB of itemArtists) {
+          permutations.push([artistA, artistB]);
+        }
+      }
+
+      let ratio = Math.max(
+        0,
+        ...permutations.map(([x, y]) => jaroWinkler(x, y)),
+      );
+
+      if (ratio <= 0.9 && tags && tags.length > 0) {
+        const filteredTags = tags
+          .filter((tag) => tag.toLowerCase() !== artist.toLowerCase())
+          .flatMap((tag) => splitArtists(tag));
+
+        const tagPermutations: [string, string][] = [];
+        for (const tag of filteredTags) {
+          for (const itemArtist of itemArtists) {
+            tagPermutations.push([tag, itemArtist]);
+          }
+        }
+
+        if (tagPermutations.length > 0) {
+          ratio = Math.max(
+            ratio,
+            ...tagPermutations.map(([x, y]) => jaroWinkler(x, y)),
+          );
+        }
+      }
+
+      return ratio > 0.9;
+    });
+
+    const closestResult = rankSearchResults(filteredResults, songDuration)[0];
+    if (!closestResult) {
       return null;
     }
 
-    const closestResult = this.findBestMatch(data, info);
-    if (!closestResult) {
+    if (!isWithinDurationTolerance(closestResult, songDuration)) {
       return null;
     }
 
@@ -130,28 +218,17 @@ export class LRCLib implements LyricProvider {
 
     return {
       title: closestResult.trackName,
-      artists: closestResult.artistName.split(/[&,]/g),
+      artists: closestResult.artistName
+        .split(/[&,]|\s+(?:feat\.?|ft\.?)\s+/i)
+        .map((item) => item.trim())
+        .filter(Boolean),
       lines: raw
-        ? LRC.parse(raw).lines.map((l) => ({
-            ...l,
+        ? LRC.parse(raw).lines.map((line) => ({
+            ...line,
             status: 'upcoming' as const,
           }))
         : undefined,
-      lyrics: plain,
+      lyrics: plain ?? undefined,
     };
   }
 }
-
-type LRCLIBRecord = LRCLIBSearchResponse[number];
-
-type LRCLIBSearchResponse = {
-  id: number;
-  name: string;
-  trackName: string;
-  artistName: string;
-  albumName: string;
-  duration: number;
-  instrumental: boolean;
-  plainLyrics: string;
-  syncedLyrics: string;
-}[];

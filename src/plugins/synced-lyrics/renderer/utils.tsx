@@ -5,9 +5,9 @@ import { romanize as esHangulRomanize } from 'es-hangul';
 import hanja from 'hanja';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
-import lazyVar from 'lazy-var';
-import { pinyin } from 'pinyin-pro';
+import { lazy } from 'lazy-var';
 import { render } from 'solid-js/web';
+import { detect } from 'tinyld';
 
 import { waitForElement } from '@/utils/wait-for-element';
 
@@ -21,9 +21,13 @@ export const selectors = {
   },
 };
 
+let disposeLyricsRoot: (() => void) | undefined;
+let containerGeneration = 0;
+
 export const tabStates: Record<string, () => void> = {
   true: async () => {
     setIsVisible(true);
+    const generation = containerGeneration;
 
     let container = document.querySelector('#synced-lyrics-container');
     if (container) return;
@@ -31,17 +35,29 @@ export const tabStates: Record<string, () => void> = {
     const tabRenderer = await waitForElement<HTMLElement>(
       selectors.body.tabRenderer,
     );
+    // The plugin may have stopped while the tab was loading.
+    if (generation !== containerGeneration) return;
+    if (document.querySelector('#synced-lyrics-container')) return;
 
     container = Object.assign(document.createElement('div'), {
       id: 'synced-lyrics-container',
     });
 
     tabRenderer.appendChild(container);
-    render(() => <LyricsRenderer />, container);
+    disposeLyricsRoot = render(() => <LyricsRenderer />, container);
   },
   false: () => {
     setIsVisible(false);
   },
+};
+
+/** Disposes the mounted lyrics UI and removes its container from the page. */
+export const disposeLyricsContainer = () => {
+  containerGeneration++;
+  setIsVisible(false);
+  disposeLyricsRoot?.();
+  disposeLyricsRoot = undefined;
+  document.querySelector('#synced-lyrics-container')?.remove();
 };
 
 export const canonicalize = (text: string) => {
@@ -145,7 +161,7 @@ const shinjitai = [
 ].map((codePoint) => String.fromCodePoint(codePoint));
 const shinjitaiRegex = new RegExp(`[${shinjitai.join('')}]`);
 
-const kuroshiro = lazyVar.lazy(async () => {
+const kuroshiro = lazy(async () => {
   const _kuroshiro = new Kuroshiro();
   await _kuroshiro.init(
     new KuromojiAnalyzer({
@@ -154,6 +170,10 @@ const kuroshiro = lazyVar.lazy(async () => {
   );
   return _kuroshiro;
 });
+
+// `pinyin-pro` carries a large dictionary that non-Chinese lyrics never need,
+// so it is kept out of the static import graph and loaded on first use.
+const pinyin = lazy(async () => (await import('pinyin-pro')).pinyin);
 
 const hasJapanese = (lines: string[]) =>
   lines.some(
@@ -183,12 +203,23 @@ export const romanizeJapanese = async (line: string) =>
     mode: 'spaced',
   }) ?? line;
 
-export const romanizeHangul = (line: string) =>
-  esHangulRomanize(hanja.translate(line, 'SUBSTITUTION'));
+type HanjaApi = {
+  translate: (text: string, mode: 'SUBSTITUTION') => string;
+};
 
-export const romanizeChinese = (line: string) => {
+const hanjaModule = hanja as HanjaApi | { default: HanjaApi };
+const hanjaTranslate = (
+  'translate' in hanjaModule ? hanjaModule : hanjaModule.default
+).translate;
+
+export const romanizeHangul = (line: string) =>
+  esHangulRomanize(hanjaTranslate(line, 'SUBSTITUTION'));
+
+export const romanizeChinese = async (line: string) => {
+  const toPinyin = await pinyin.get();
+
   return line.replaceAll(/[\u4E00-\u9FFF]+/g, (match) => {
-    return pinyin(match, { separator: ' ' });
+    return toPinyin(match, { separator: ' ' });
   });
 };
 
@@ -213,12 +244,12 @@ export const romanizeThai = (line: string) => {
 };
 
 export const romanizeBengali = (line: string) => {
-  if (!hasBengali([line])) return line;
   try {
-    let out = Sanscript.t(line, 'bengali', 'iast');
-    out = out.normalize('NFD');
-    out = out.replace(/[\u0300-\u036f]/g, '');
-    out = out.replace(/[\u09BC\u09BE-\u09CD]/g, '');
+    let out = Sanscript.t(line, 'bengali', 'iso');
+    out = out.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+    out = out.replace(/[\u09BC]/g, '');
+    out = out.replace(/[^a-z0-9\s'-]/gi, ' ');
+    out = out.replace(/\s+/g, ' ').trim();
     return out.toLowerCase();
   } catch {
     return line;
@@ -226,23 +257,64 @@ export const romanizeBengali = (line: string) => {
 };
 
 export const romanizeHindi = (line: string) => {
-  if (!hasHindi([line])) return line;
   try {
-    let out = Sanscript.t(line, 'devanagari', 'iast');
-    out = out.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents
-    return out.replace(/[^a-zA-Z\s]/g, '') || line; // remove any remaining symbols
+    let out = Sanscript.t(line, 'devanagari', 'iso', { syncope: true });
+    out = out.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+    out = out.replace(/\u093C/g, '');
+    out = out.replace(/[^a-z\s'-]/gi, ' ');
+    out = out.replace(/\s+/g, ' ').trim();
+    return out.toLowerCase() || line;
   } catch {
     return line;
   }
 };
 
-export const romanize = async (line: string) => {
-  if (hasJapanese([line])) return await romanizeJapanese(line);
-  if (hasKorean([line])) return romanizeHangul(line);
-  if (hasChinese([line])) return romanizeChinese(line);
-  if (hasThai([line])) return romanizeThai(line);
-  if (hasBengali([line])) return romanizeBengali(line);
-  if (hasHindi([line])) return romanizeHindi(line);
+const handlers: Record<string, (line: string) => Promise<string> | string> = {
+  ja: romanizeJapanese,
+  ko: romanizeHangul,
+  zh: romanizeChinese,
+  th: romanizeThai,
+  bn: romanizeBengali,
+  hi: romanizeHindi,
+};
+
+const romanizeLine = async (line: string) => {
+  const lang = detect(line);
+
+  const handler = handlers[lang];
+  if (handler) {
+    return handler(line);
+  }
+
+  // fallback
+  if (hasJapanese([line])) line = await romanizeJapanese(line);
+  if (hasKorean([line])) line = romanizeHangul(line);
+  if (hasChinese([line])) line = await romanizeChinese(line);
+  if (hasThai([line])) line = romanizeThai(line);
+  if (hasBengali([line])) line = romanizeBengali(line);
+  if (hasHindi([line])) line = romanizeHindi(line);
 
   return line;
+};
+
+// Bounded cache: romanization is pure per line text, so repeated lines
+// (choruses, re-mounted virtual rows) skip detection and transliteration.
+const romanizeCache = new Map<string, Promise<string>>();
+const ROMANIZE_CACHE_LIMIT = 512;
+
+export const romanize = (line: string) => {
+  const cached = romanizeCache.get(line);
+  if (cached) return cached;
+
+  const pending = romanizeLine(line);
+  // A transient failure (e.g. dictionary download) should not be cached.
+  pending.catch(() => romanizeCache.delete(line));
+
+  if (romanizeCache.size >= ROMANIZE_CACHE_LIMIT) {
+    const oldest = romanizeCache.keys().next().value;
+    if (oldest !== undefined) romanizeCache.delete(oldest);
+  }
+  romanizeCache.set(line, pending);
+
+  return pending;
 };

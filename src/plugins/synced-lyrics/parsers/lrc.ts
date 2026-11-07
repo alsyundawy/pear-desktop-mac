@@ -1,3 +1,5 @@
+import type { LyricWord } from '../types';
+
 interface LRCTag {
   tag: string;
   value: string;
@@ -8,7 +10,7 @@ interface LRCLine {
   timeInMs: number;
   duration: number;
   text: string;
-  words: { timeInMs: number; word: string }[];
+  words: LyricWord[];
 }
 
 interface LRC {
@@ -16,134 +18,198 @@ interface LRC {
   lines: LRCLine[];
 }
 
-// Disjoint tokens ensure strictly linear scanning without catastrophic backtracking
-const tagRegex = /^\[(?<tag>\w+):(?<value>[^\]]+)\]$/;
-// prettier-ignore
-const timestampRegex = /^\[(?<minutes>\d+):(?<seconds>\d+)\.(?<centiseconds>\d+)\]/m;
+// `[mm:ss.xx]`, `[mm:ss.xxx]`, `[mm:ss:xx]` and the fraction-less `[mm:ss]`.
+const TIME = String.raw`\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]`;
+const timeAtStartRegex = new RegExp(`^${TIME}`);
+// Enhanced-LRC karaoke tags, same syntax in `<>` instead of `[]`.
+const wordTagRegex = new RegExp(
+  String.raw`<(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?>`,
+  'g',
+);
 
-// prettier-ignore
-const wordRegex = /<(?<minutes>\d+):(?<seconds>\d+)\.(?<centiseconds>\d+)> *(?<word>\w+)/g;
+const tagRegex = /^\[(?<tag>\w+):\s*(?<value>.*?)\s*\]$/;
 
-const parseTimeToMs = (
+/** Fraction digits are centiseconds unless the file uses milliseconds. */
+const fractionToMs = (fraction?: string) => {
+  if (!fraction) return 0;
+  return parseInt(fraction.padEnd(3, '0'));
+};
+
+const toTimeInMs = (
   minutes: string,
   seconds: string,
-  centiseconds: string,
-): number => {
-  const milliseconds = centiseconds.padEnd(3, '0');
-  const minutesMs = Number.parseInt(minutes, 10) * 60 * 1000;
-  const secondsMs = Number.parseInt(seconds, 10) * 1000;
-  const millisecondsMs = Number.parseInt(milliseconds, 10);
-  return minutesMs + secondsMs + millisecondsMs;
+  fraction?: string,
+): number =>
+  parseInt(minutes) * 60_000 +
+  parseInt(seconds) * 1000 +
+  fractionToMs(fraction);
+
+/** `mm:ss:xx`, the timestamp shown when the time codes setting is on. */
+const toDisplayTime = (timeInMs: number): string => {
+  const minutes = Math.floor(timeInMs / 60_000);
+  const seconds = Math.floor((timeInMs % 60_000) / 1000);
+  const centiseconds = Math.floor((timeInMs % 1000) / 10);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${pad(minutes)}:${pad(seconds)}:${pad(centiseconds)}`;
 };
 
-const parseTimestamps = (
-  line: string,
-): { timestamps: { time: string; timeInMs: number }[]; remainder: string } => {
-  const timestamps: { time: string; timeInMs: number }[] = [];
-  let remainder = line;
-  let match: RegExpExecArray | null;
+type TimedPiece = { timeInMs: number; text: string };
 
-  while ((match = timestampRegex.exec(remainder)) !== null) {
-    const { minutes, seconds, centiseconds } = match.groups!;
-    const timeInMs = parseTimeToMs(minutes, seconds, centiseconds);
-    timestamps.push({
-      time: `${minutes}:${seconds}:${centiseconds}`,
-      timeInMs,
-    });
-    remainder = remainder.replace(timestampRegex, '');
+/**
+ * Splits the rest of an enhanced-LRC line into timed pieces. The text between
+ * two `<mm:ss.xx>` tags belongs to the first tag, so punctuation, CJK and
+ * apostrophes survive untouched instead of being re-joined from `\w+` tokens.
+ */
+const parseTimedPieces = (line: string): TimedPiece[] => {
+  const pieces: TimedPiece[] = [];
+  let lastTime: number | null = null;
+  let lastIndex = 0;
+
+  for (const match of line.matchAll(wordTagRegex)) {
+    const [, minutes, seconds, fraction] = match;
+    if (lastTime !== null) {
+      pieces.push({
+        timeInMs: lastTime,
+        // The whitespace before a tag is the source's separator, not part of
+        // the word: the previous word already ends with its own spacing.
+        text: line.slice(lastIndex, match.index).replace(/^\s+/, ''),
+      });
+    }
+    lastTime = toTimeInMs(minutes, seconds, fraction);
+    lastIndex = match.index + match[0].length;
   }
 
-  return { timestamps, remainder };
+  if (lastTime === null) return [];
+
+  pieces.push({
+    timeInMs: lastTime,
+    text: line.slice(lastIndex).replace(/^\s+/, ''),
+  });
+  return pieces;
 };
 
-const parseWords = (text: string): { timeInMs: number; word: string }[] => {
-  const words: { timeInMs: number; word: string }[] = [];
-  let match: RegExpExecArray | null;
-  const re = new RegExp(wordRegex.source, wordRegex.flags);
+/**
+ * Word timings: a word ends at the earlier of the next word and its own known
+ * end (a trailing `<mm:ss.xx>` tag with no text marks it, as in Apple-Music
+ * rich sync); the last word otherwise runs to the end of the line.
+ */
+const fillWordDurations = (
+  words: LyricWord[],
+  lineStart: number,
+  lineEnd: number,
+) => {
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const next = words[i + 1];
+    const availableEnd = next
+      ? next.timeInMs
+      : Math.max(lineEnd, Math.max(word.timeInMs, lineStart));
+    const explicitEnd =
+      word.duration > 0
+        ? word.timeInMs + word.duration
+        : Number.POSITIVE_INFINITY;
 
-  while ((match = re.exec(text)) !== null) {
-    const { minutes, seconds, centiseconds, word } = match.groups!;
-    const timeInMs = parseTimeToMs(minutes, seconds, centiseconds);
-    words.push({ timeInMs, word });
+    word.duration = Math.max(
+      0,
+      Math.min(availableEnd, explicitEnd) - word.timeInMs,
+    );
+  }
+};
+
+/** Splits timed pieces into words, keeping an end marker as the previous end. */
+const piecesToWords = (pieces: TimedPiece[]): LyricWord[] => {
+  const words: LyricWord[] = [];
+
+  for (const piece of pieces) {
+    if (!piece.text.trim()) {
+      const previous = words.at(-1);
+      if (previous && !piece.text) {
+        previous.duration = Math.max(0, piece.timeInMs - previous.timeInMs);
+      }
+      continue;
+    }
+
+    words.push({ ...piece, duration: 0 });
   }
 
   return words;
 };
 
-/** Process a single tag line (non-timestamp); mutates lrc.tags and offset. */
-const processTagLine = (
-  line: string,
-  lrc: LRC,
-  offset: { value: number },
-): void => {
-  const tagMatch = tagRegex.exec(line);
-  if (!tagMatch?.groups) return;
-  const { tag, value } = tagMatch.groups;
-  const trimmedValue = value.trim();
-  if (tag === 'offset') {
-    offset.value = Number.parseInt(trimmedValue, 10);
-  } else {
-    lrc.tags.push({ tag, value: trimmedValue });
-  }
-};
-
-/** Process a timestamped line; mutates lrc.lines. */
-const processTimestampedLine = (
-  timestamps: { time: string; timeInMs: number }[],
-  remainder: string,
-  lrc: LRC,
-): void => {
-  let lineText = remainder.trim();
-  const words = parseWords(lineText);
-
-  if (words.length) {
-    lineText = words.map(({ word }) => word).join(' ');
-  }
-
-  for (const { time, timeInMs } of timestamps) {
-    lrc.lines.push({
-      time,
-      timeInMs,
-      text: lineText,
-      words,
-      duration: Infinity,
-    });
-  }
-};
-
-/** Apply offset to lines and compute durations between adjacent lines. */
-const applyOffsetAndDurations = (lrc: LRC, offset: number): void => {
-  lrc.lines.sort(({ timeInMs: timeA }, { timeInMs: timeB }) => timeA - timeB);
-  for (let i = 0; i < lrc.lines.length; i++) {
-    const current = lrc.lines[i];
-    const next = lrc.lines[i + 1];
-    current.timeInMs += offset;
-    if (next) {
-      current.duration = next.timeInMs - current.timeInMs;
-    }
-  }
-};
-
 export const LRC = {
   parse: (text: string): LRC => {
-    const lrc: LRC = { tags: [], lines: [] };
-    const offset = { value: 0 };
+    const lrc: LRC = {
+      tags: [],
+      lines: [],
+    };
 
-    for (let line of text.split('\n')) {
-      line = line.trim();
+    let offset = 0;
+
+    for (const rawLine of text.split('\n')) {
+      let line = rawLine.trim();
       if (!line.startsWith('[')) continue;
 
-      const { timestamps, remainder } = parseTimestamps(line);
+      const timestamps: { time: string; timeInMs: number }[] = [];
+      let match: RegExpExecArray | null;
+      while ((match = timeAtStartRegex.exec(line))) {
+        const [, minutes, seconds, fraction] = match;
+        const timeInMs = toTimeInMs(minutes, seconds, fraction);
+        timestamps.push({ time: toDisplayTime(timeInMs), timeInMs });
+        line = line.slice(match[0].length);
+      }
 
       if (!timestamps.length) {
-        processTagLine(line, lrc, offset);
+        const tag = line.match(tagRegex)?.groups;
+        if (tag) {
+          if (tag.tag === 'offset') {
+            offset = parseInt(tag.value) || 0;
+            continue;
+          }
+
+          lrc.tags.push({ tag: tag.tag, value: tag.value });
+        }
         continue;
       }
 
-      processTimestampedLine(timestamps, remainder, lrc);
+      const pieces = parseTimedPieces(line);
+      const words = piecesToWords(pieces);
+      const content = words.length
+        ? words
+            .map((word) => word.text)
+            .join('')
+            .trim()
+        : line.trim();
+
+      for (const { time, timeInMs } of timestamps) {
+        lrc.lines.push({
+          time,
+          timeInMs,
+          text: content,
+          words: words.map((word) => ({ ...word })),
+          duration: Infinity,
+        });
+      }
     }
 
-    applyOffsetAndDurations(lrc, offset.value);
+    lrc.lines.sort(({ timeInMs: timeA }, { timeInMs: timeB }) => timeA - timeB);
+
+    for (const line of lrc.lines) {
+      line.timeInMs += offset;
+      for (const word of line.words) {
+        word.timeInMs += offset;
+      }
+    }
+
+    for (let i = 0; i < lrc.lines.length; i++) {
+      const current = lrc.lines[i];
+      const next = lrc.lines[i + 1];
+
+      current.duration = next ? next.timeInMs - current.timeInMs : Infinity;
+      fillWordDurations(
+        current.words,
+        current.timeInMs,
+        current.timeInMs + current.duration,
+      );
+    }
 
     const first = lrc.lines.at(0);
     if (first && first.timeInMs > 300) {

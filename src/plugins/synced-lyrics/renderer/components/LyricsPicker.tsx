@@ -68,7 +68,7 @@ const providerBias = (p: ProviderName) =>
 const pickBestProvider = () => {
   const preferred = config()?.preferredProvider;
   if (preferred) {
-    const data = lyricsStore.lyrics[preferred].data;
+    const data = (lyricsStore.lyrics as Record<string, any>)[preferred]?.data;
     if (Array.isArray(data?.lines) || data?.lyrics) {
       return { provider: preferred, force: true };
     }
