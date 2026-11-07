@@ -71,6 +71,14 @@ export const onMenu = async ({
       },
     },
     {
+      label: t('plugins.api-server.menu.mcp.label'),
+      type: 'checkbox',
+      checked: config.mcpEnabled,
+      click(menuItem) {
+        setConfig({ ...config, mcpEnabled: menuItem.checked });
+      },
+    },
+    {
       label: t('plugins.api-server.menu.auth-strategy.label'),
       type: 'submenu',
       submenu: [

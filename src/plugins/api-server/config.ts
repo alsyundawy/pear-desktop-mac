@@ -14,6 +14,7 @@ export interface APIServerConfig {
   useHttps: boolean;
   certPath: string;
   keyPath: string;
+  mcpEnabled: boolean;
 }
 
 export const defaultAPIServerConfig: APIServerConfig = {
@@ -27,4 +28,5 @@ export const defaultAPIServerConfig: APIServerConfig = {
   useHttps: false,
   certPath: '',
   keyPath: '',
+  mcpEnabled: false,
 };

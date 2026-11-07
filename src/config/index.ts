@@ -83,6 +83,8 @@ type PathValue<T, K extends string> =
 export const get = <Key extends Paths<typeof defaultConfig>>(key: Key) =>
   store.get(key) as PathValue<typeof defaultConfig, typeof key>;
 
+export const getAll = () => store.store;
+
 export const edit = () => store.openInEditor();
 
 export const watch = (cb: Parameters<IStore['onDidAnyChange']>[0]) => {

@@ -14,8 +14,13 @@ import { registerCallback } from '@/providers/song-info';
 import { createBackend } from '@/utils';
 
 import { API_VERSION } from './api-version';
+import { registerMcp } from './mcp';
+import { createDefaultOperations, createMcpTools } from './mcp-tools';
 import { registerAuth, registerControl, registerWebsocket } from './routes';
 import { JWTPayloadSchema } from './scheme';
+
+import * as config from '@/config';
+import { getSongControls } from '@/providers/song-controls';
 
 import { type APIServerConfig, AuthStrategy } from '../config';
 
@@ -140,6 +145,17 @@ export const backend = createBackend<BackendType, APIServerConfig>({
     );
     registerAuth(this.app, backendCtx);
     registerWebsocket(this.app, backendCtx, upgradeWebSocket);
+
+    const controller = getSongControls(backendCtx.window);
+    const operations = createDefaultOperations(
+      controller,
+      () => config.getAll(),
+      () => this.songInfo,
+      () => this.currentRepeatMode,
+      () => this.volumeState,
+    );
+    const mcpTools = createMcpTools(operations);
+    registerMcp(this.app, backendCtx, mcpTools);
 
     // swagger
     this.app.openAPIRegistry.registerComponent(
