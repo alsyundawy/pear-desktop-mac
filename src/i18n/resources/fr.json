@@ -27,13 +27,13 @@
         "loaded": "i18n chargé"
       },
       "second-instance": {
-        "receive-command": "Received command over protocol : \"{{command}}\""
+        "receive-command": "Received command over protocol : \"{{command}}\""
       },
       "theme": {
         "css-file-not-found": "Le fichier de CSS \"{{cssFile}}\" n'existe pas, ignorer"
       },
       "unresponsive": {
-        "details": "Erreur : Aucune réponse!\n{{error}}"
+        "details": "Erreur : Aucune réponse!\n{{error}}"
       },
       "when-ready": {
         "clearing-cache-after-20s": "Effacement du cache de l'application"
@@ -63,7 +63,7 @@
           "relaunch": "Relancer",
           "wait": "Attendre"
         },
-        "detail": "Nous sommes désolés du dérangement ! veuillez choisir quoi faire :",
+        "detail": "Nous sommes désolés du dérangement ! veuillez choisir quoi faire :",
         "message": "L'application ne répond pas",
         "title": "La fenêtre ne répond pas"
       },
@@ -104,8 +104,8 @@
               "set-proxy": {
                 "label": "Définir un proxy",
                 "prompt": {
-                  "label": "Entrez l'adresse proxy : (laissez vide pour désactiver)",
-                  "placeholder": "Exemple : SOCKS5://127.0.0.1:9999",
+                  "label": "Entrez l'adresse proxy : (laissez vide pour désactiver)",
+                  "placeholder": "Exemple : SOCKS5://127.0.0.1:9999",
                   "title": "Définir un proxy"
                 }
               },
@@ -153,8 +153,8 @@
               "custom-window-title": {
                 "label": "Titre de fenêtre personnalisé",
                 "prompt": {
-                  "label": "Entrer un titre de fenêtre : (Laissé vide pour désactiver)",
-                  "placeholder": "Exemple : {{applicationName}}"
+                  "label": "Entrer un titre de fenêtre : (Laissé vide pour désactiver)",
+                  "placeholder": "Exemple : {{applicationName}}"
                 }
               },
               "like-buttons": {
@@ -171,7 +171,7 @@
                     "cancel": "Annuler",
                     "remove": "Supprimer"
                   },
-                  "remove-theme": "Êtes-vous sûr de supprimer le thème personnalisé ?",
+                  "remove-theme": "Êtes-vous sûr de supprimer le thème personnalisé ?",
                   "remove-theme-message": "Cela va supprimer le thème personnalisé"
                 },
                 "label": "Thème",
@@ -210,7 +210,7 @@
       "show": "Afficher la fenêtre",
       "tooltip": {
         "default": "{{applicationName}}",
-        "with-song-info": "{{applicationName}} : {{artist}} - {{title}}"
+        "with-song-info": "{{applicationName}} : {{artist}} - {{title}}"
       }
     }
   },
@@ -296,7 +296,7 @@
             "allow": "Autoriser",
             "deny": "Interdire"
           },
-          "message": "Autoriser {{ID}} ({{origin}}) à accéder à l'API ?",
+          "message": "Autoriser {{ID}} ({{origin}}) à accéder à l'API ?",
           "title": "Demande d'autorisation à l'API"
         }
       },
@@ -338,11 +338,11 @@
       "name": "Serveur API [Beta]",
       "prompt": {
         "hostname": {
-          "label": "Entrer le nom de l'hôte (par exemple : 0.0.0.0) pour le serveur API :",
+          "label": "Entrer le nom de l'hôte (par exemple : 0.0.0.0) pour le serveur API :",
           "title": "Nom d'hôte"
         },
         "port": {
-          "label": "Entrez le port du serveur API :",
+          "label": "Entrez le port du serveur API :",
           "title": "Port"
         }
       }
@@ -366,11 +366,11 @@
       "name": "Adaptateur de Proxy d'Authentification",
       "prompt": {
         "hostname": {
-          "label": "Saisir le nom d'hôte pour le serveur proxy local (nécessite un redémarrage) :",
+          "label": "Saisir le nom d'hôte pour le serveur proxy local (nécessite un redémarrage) :",
           "title": "Nom d'hôte du proxy"
         },
         "port": {
-          "label": "Saisir le port pour le serveur proxy local (nécessite un redémarrage) :",
+          "label": "Saisir le port pour le serveur proxy local (nécessite un redémarrage) :",
           "title": "Port du proxy"
         }
       }
@@ -492,7 +492,7 @@
       "name": "Discord Rich Presence",
       "prompt": {
         "set-inactivity-timeout": {
-          "label": "Entrez le délai d'inactivité en secondes :",
+          "label": "Entrez le délai d'inactivité en secondes :",
           "title": "Définir le délai d'inactivité"
         }
       }
@@ -511,8 +511,8 @@
             "buttons": {
               "ok": "Ok"
             },
-            "message": "Argh ! Désolé, le téléchargement a échoué…",
-            "title": "Erreur de téléchargement !"
+            "message": "Argh ! Désolé, le téléchargement a échoué…",
+            "title": "Erreur de téléchargement !"
           },
           "start-download-playlist": {
             "buttons": {
@@ -524,25 +524,25 @@
           }
         },
         "feedback": {
-          "conversion-progress": "Conversion : {{percent}}%",
+          "conversion-progress": "Conversion : {{percent}}%",
           "converting": "Conversion…",
-          "done": "Terminé : {{filePath}}",
+          "done": "Terminé : {{filePath}}",
           "download-info": "Téléchargement {{artist}} - {{title}} [{{videoId}}",
-          "download-progress": "Téléchargé : {{percent}}%",
+          "download-progress": "Téléchargé : {{percent}}%",
           "downloading": "Télécharge…",
           "downloading-counter": "Télécharge {{current}}/{{total}}…",
-          "downloading-playlist": "Téléchargement de la playlist \"{{playlistTitle}}\" - {{playlistSize}} chansons ({{playlistId}})",
-          "error-while-downloading": "Erreur lors du téléchargement de \"{{author}} - {{title}}\" : {{error}}",
+          "downloading-playlist": "Téléchargement de la playlist \"{{playlistTitle}}\" - {{playlistSize}} chansons ({{playlistId}})",
+          "error-while-downloading": "Erreur lors du téléchargement de \"{{author}} - {{title}}\" : {{error}}",
           "folder-already-exists": "Le dossier {{playlistFolder}} existe déjà",
           "getting-playlist-info": "Obtention des données de la playlist…",
           "loading": "Chargement…",
           "playlist-has-only-one-song": "La playlist ne contient qu'un seul élément, téléchargement du morceau seul",
           "playlist-id-not-found": "Aucun ID de playlist trouvé",
           "playlist-is-empty": "La playlist est vide",
-          "playlist-is-mix-or-private": "Erreur lors de l'obtention des informations sur la playlist : assurez-vous qu'il ne s'agit pas d'une playlist privée ou \"Mixée pour vous\"\n\n{{error}}",
+          "playlist-is-mix-or-private": "Erreur lors de l'obtention des informations sur la playlist : assurez-vous qu'il ne s'agit pas d'une playlist privée ou \"Mixée pour vous\"\n\n{{error}}",
           "preparing-file": "Préparation des fichier…",
           "saving": "Sauvegarde…",
-          "trying-to-get-playlist-id": "Obtention de l'ID de la playlist : {{playlistId}}",
+          "trying-to-get-playlist-id": "Obtention de l'ID de la playlist : {{playlistId}}",
           "video-id-not-found": "Vidéo introuvable",
           "writing-id3": "Écriture des balises ID3…"
         }
@@ -722,7 +722,7 @@
       }
     },
     "playback-speed": {
-      "description": "Écoutez vite, écoutez lentement ! Ajoute un curseur qui contrôle la vitesse de la chanson",
+      "description": "Écoutez vite, écoutez lentement ! Ajoute un curseur qui contrôle la vitesse de la chanson",
       "name": "Vitesse de lecture",
       "templates": {
         "button": "Vitesse"
@@ -742,7 +742,7 @@
             "decrease": "Diminuer le volume",
             "increase": "Augmenter le volume"
           },
-          "label": "Choisissez les raccourcis clavier du volume global :",
+          "label": "Choisissez les raccourcis clavier du volume global :",
           "title": "Raccourcis clavier de volume global"
         },
         "volume-steps": {
@@ -755,8 +755,8 @@
       "backend": {
         "dialog": {
           "quality-changer": {
-            "detail": "Qualité actuelle : {{quality}}",
-            "message": "Choisissez la qualité vidéo :",
+            "detail": "Qualité actuelle : {{quality}}",
+            "message": "Choisissez la qualité vidéo :",
             "title": "Choisissez la qualité vidéo"
           }
         }
@@ -798,7 +798,7 @@
         },
         "listenbrainz": {
           "token": {
-            "label": "Entrez votre token utilisateur ListenBrainz :",
+            "label": "Entrez votre token utilisateur ListenBrainz :",
             "title": "Token ListenBrainz"
           }
         }
@@ -818,7 +818,7 @@
             "play-pause": "Lecture / Pause",
             "previous": "Précédent"
           },
-          "label": "Choisissez les raccourcis clavier globaux pour le contrôle des morceaux :",
+          "label": "Choisissez les raccourcis clavier globaux pour le contrôle des morceaux :",
           "title": "Raccourcis clavier globaux"
         }
       }

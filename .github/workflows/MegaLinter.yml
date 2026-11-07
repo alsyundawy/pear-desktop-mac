@@ -72,7 +72,6 @@ jobs:
           # https://megalinter.io/configuration/
           VALIDATE_ALL_CODEBASE: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) || (github.event_name == 'workflow_dispatch') }} # Validates all source when push on master or tags, else just the git diff with master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DISABLE_LINTERS: COPYPASTE_JSCPD,SPELL_CODESPELL,SPELL_CSPELL,ACTION_ZIZMOR,REPOSITORY_DEVSKIM,CSS_STYLELINT,JAVASCRIPT_ESLINT,TYPESCRIPT_ESLINT,TSX_ESLINT
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts

@@ -229,7 +229,7 @@
         "color-mix-ratio": {
           "label": "Färgblandningsförhållande",
           "submenu": {
-            "percent": "{{ratio}} %"
+            "percent": "{{ratio}} %"
           }
         },
         "enable-seekbar": "Aktivera temaanpassning av uppspelningsreglaget"

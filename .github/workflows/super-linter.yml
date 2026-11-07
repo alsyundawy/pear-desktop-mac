@@ -47,6 +47,7 @@ jobs:
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
+          FILTER_REGEX_EXCLUDE: "(src/i18n/.*|dist/.*|pack/.*|patches/.*)"
           VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
           VALIDATE_BASH: true
