@@ -7,51 +7,64 @@ import { app, net } from 'electron';
 let blocker: ElectronBlocker | undefined;
 
 const SOURCES = [
-  // YouTube Specific Filters
+  // ===== YouTube Specific (Ads + Cosmetic) =====
   'https://raw.githubusercontent.com/kbinani/adblock-youtube-ads/master/signed.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/quick-fixes.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/unbreak.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2020.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2021.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2022.txt',
-  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2023.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/quick-fixes.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/unbreak.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2026.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2025.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2024.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2023.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2022.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2021.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-2020.txt',
+  'https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/filters/filters-general.txt',
+  'https://filters.adtidy.org/extension/ublock/filters/2_without_easylist.txt',
+  'https://raw.githubusercontent.com/hl2guide/curated-adblock-lists/refs/heads/main/lists/video-media.txt',
 
-  // Core Ads & Trackers
-  'https://ublockorigin.github.io/uAssets/thirdparties/easylist.txt', // EasyList
-  'https://ublockorigin.github.io/uAssets/thirdparties/easyprivacy.txt', // EasyPrivacy
-  'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=1&mimetype=plaintext', // Peter Lowe – Ads, trackers, and more
-  'https://ublockorigin.github.io/uAssets/filters/filters.txt', // uBlock filters – Ads
-  'https://ublockorigin.github.io/uAssets/filters/privacy.txt', // uBlock filters – Privacy
-  'https://ublockorigin.github.io/uAssets/filters/badware.txt', // uBlock filters – Badware
+  // Cosmetic / Clean YouTube UI
+  'https://raw.githubusercontent.com/i5heu/ublock-hide-yt-shorts/master/list.txt',                  // Hide Shorts
+  'https://raw.githubusercontent.com/Onsotumenh/YouTube-Cosmetic-Filters-for-uBlock-Origin/main/YouTubeFilterList.txt',
+  'https://raw.githubusercontent.com/mchangrh/yt-neuter/main/yt-neuter.txt',                       // YouTube Neuter
+  'https://raw.githubusercontent.com/jartf/ublock-lists/main/YouTube/cleaner-youtube-ui.txt',
+  'https://codeberg.org/Sparronator9999/yt-ublock-filters/raw/branch/main/yt-filters.txt',         // Usability filters
 
-  // Mobile Ads & Privacy (URL Tracking Protection)
-  'https://filters.adtidy.org/extension/ublock/filters/11.txt', // AdGuard/uBO – Mobile Ads
-  'https://ublockorigin.github.io/uAssets/filters/privacy-removeparam.txt', // AdGuard/uBO – URL Tracking Protection
+  // ===== Core Ads & Trackers =====
+  'https://ublockorigin.github.io/uAssets/thirdparties/easylist.txt',
+  'https://ublockorigin.github.io/uAssets/thirdparties/easyprivacy.txt',
+  'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=1&mimetype=plaintext',
+  'https://ublockorigin.github.io/uAssets/filters/filters.txt',
+  'https://ublockorigin.github.io/uAssets/filters/privacy.txt',
+  'https://ublockorigin.github.io/uAssets/filters/badware.txt',
 
-  // Annoyances & Miscellaneous
-  'https://ublockorigin.github.io/uAssets/thirdparties/easylist-annoyances.txt', // EasyList – Other Annoyances
-  'https://secure.fanboy.co.nz/fanboy-annoyance_ubo.txt', // Fanboy Annoyances
-  'https://filters.adtidy.org/extension/ublock/filters/122_optimized.txt', // AdGuard Annoyances
+  // ===== Mobile Ads & Privacy =====
+  'https://filters.adtidy.org/extension/ublock/filters/11.txt',
+  'https://ublockorigin.github.io/uAssets/filters/privacy-removeparam.txt',
 
-  // Regional Filter Lists
-  'https://raw.githubusercontent.com/AnXh3L0/blocklist/master/albanian-easylist-addition/Albania.txt', // al, xk: Adblock List for Albania
-  'https://easylist-downloads.adblockplus.org/Liste_AR.txt', // eg, sa, ma, dz: Liste AR
-  'https://stanev.org/abp/adblock_bg.txt', // bg: Bulgarian Adblock list
-  'https://filters.adtidy.org/extension/ublock/filters/224.txt', // cn, tw: AdGuard Chinese (中文)
-  'https://raw.githubusercontent.com/ABPindo/indonesianadblockrules/master/subscriptions/abpindo.txt', // id, my: ABPindo
-  'https://easylist-downloads.adblockplus.org/indianlist.txt', // in, lk, np: IndianList
-  'https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlocker.txt', // ir: PersianBlocker
-  'https://raw.githubusercontent.com/brave/adblock-lists/master/custom/is.txt', // is: Icelandic ABP List
-  'https://raw.githubusercontent.com/easylist/EasyListHebrew/master/EasyListHebrew.txt', // il: EasyList Hebrew
-  'https://easylist-downloads.adblockplus.org/easylistitaly.txt', // it: EasyList Italy
-  'https://filters.adtidy.org/extension/ublock/filters/7.txt', // jp: AdGuard Japanese
-  'https://cdn.jsdelivr.net/npm/@filteringdev/filterslists-ko@latest/dist/filterslist-uBlockOrigin-classic.txt', // kr: 한국어 (Korean)
+  // ===== Annoyances =====
+  'https://ublockorigin.github.io/uAssets/thirdparties/easylist-annoyances.txt',
+  'https://secure.fanboy.co.nz/fanboy-annoyance_ubo.txt',
+  'https://filters.adtidy.org/extension/ublock/filters/122_optimized.txt',
 
-  // Security & Threat Intelligence (HaGeZi DNS Blocklists - Adblock format)
-  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.txt', // HaGeZi Multi PRO
-  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/popupads.txt', // HaGeZi Pop-up Ads
-  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.mini.txt', // HaGeZi Threat Intelligence Feeds - Mini
+  // ===== Regional Filter Lists =====
+  'https://raw.githubusercontent.com/AnXh3L0/blocklist/master/albanian-easylist-addition/Albania.txt',
+  'https://easylist-downloads.adblockplus.org/Liste_AR.txt',
+  'https://stanev.org/abp/adblock_bg.txt',
+  'https://filters.adtidy.org/extension/ublock/filters/224.txt',
+  'https://raw.githubusercontent.com/ABPindo/indonesianadblockrules/master/subscriptions/abpindo.txt',
+  'https://easylist-downloads.adblockplus.org/indianlist.txt',
+  'https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlocker.txt',
+  'https://raw.githubusercontent.com/brave/adblock-lists/master/custom/is.txt',
+  'https://raw.githubusercontent.com/easylist/EasyListHebrew/master/EasyListHebrew.txt',
+  'https://easylist-downloads.adblockplus.org/easylistitaly.txt',
+  'https://filters.adtidy.org/extension/ublock/filters/7.txt',
+  'https://cdn.jsdelivr.net/npm/@filteringdev/filterslists-ko@latest/dist/filterslist-uBlockOrigin-classic.txt',
+
+  // ===== Security & Threat Intelligence =====
+  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.txt',
+  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/popupads.txt',
+  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.mini.txt',
 ];
 
 export const loadTrackerBlockerEngine = async (
